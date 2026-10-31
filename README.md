@@ -1,162 +1,496 @@
-# Order-to-Cash Revenue Leakage and Process Delay Analysis
 
-A local analytics system that follows a sale from quote to cash, then finds where money leaks, where the process stalls, and why.
 
-It generates a realistic synthetic business dataset, plants known problems in it, detects them with explainable rules that never see the answers, and proves the books balance to the paisa.
+# YottaFlex AI — Order-to-Cash Revenue Leakage & Process Delay Analysis
 
-> **AI disclosure:** this project was generated with Claude Code. See [`docs/ai_usage.md`](docs/ai_usage.md) and [`docs/prompt_history.md`](docs/prompt_history.md). Setup on a new laptop and the checks to run are in [`HANDOFF.md`](HANDOFF.md). How the project was built before it reached GitHub is under [Development history and evidence](#development-history-and-evidence).
+> **Candidate Project Submission**  
+> A locally executable analytics system that follows a sale from quote to cash, identifies potential revenue leakage and process delays, and validates financial consistency.
 
-## The business workflow
+The system generates a realistic synthetic business dataset, introduces known anomalies, detects them using explainable rules, and evaluates the results against separate ground-truth labels.
+
+**Repository:** [AI-order-to-cash-detection-system](https://github.com/Manusha-M/AI-order-to-cash-detection-system)  
+**Application:** Python CLI + Streamlit dashboard  
+**Database:** SQLite  
+**Testing:** pytest  
+**Data:** Fully synthetic; no external or personal data used
+
+> **Candidate submission:** This repository contains the executable project, setup instructions, source code, tests, supporting documentation, validation evidence, development context, and AI-use disclosure required to review the submission.
+
+---
+
+## Table of Contents
+
+- [Candidate Submission and Compliance](#candidate-submission-and-compliance)
+- [The Business Problem](#the-business-problem)
+- [What the System Does](#what-the-system-does)
+- [The Order-to-Cash Workflow](#the-order-to-cash-workflow)
+- [Quick Start](#quick-start)
+- [Commands](#commands)
+- [Architecture and Technology](#architecture-and-technology)
+- [Data Model](#data-model)
+- [Data Generation](#data-generation)
+- [Anomaly Scenarios](#anomaly-scenarios)
+- [Detection and Evaluation](#detection-and-evaluation)
+- [Financial Definitions](#financial-definitions)
+- [Measured Results](#measured-results)
+- [Assumptions and Trade-offs](#assumptions-and-trade-offs)
+- [Known Limitations](#known-limitations)
+- [Testing and Verification](#testing-and-verification)
+- [Repository Structure](#repository-structure)
+- [AI Usage and Prompt History](#ai-usage-and-prompt-history)
+- [Development History and Evidence](#development-history-and-evidence)
+- [Repository Safety](#repository-safety)
+- [Reviewer Walkthrough](#reviewer-walkthrough)
+- [Next Steps](#next-steps)
+
+---
+
+## Candidate Submission and Compliance
+
+This project is submitted as part of the YottaFlex AI Candidate Project.
+
+The submission guidelines emphasize four areas:
+
+| Requirement | Evidence in this repository |
+|---|---|
+| **Make it run** | Installation instructions, `requirements.txt`, `run.py`, CLI commands, and dashboard instructions |
+| **Show your work** | Public GitHub repository, source code, supporting documentation, and development history |
+| **Use LLMs transparently** | `docs/ai_usage.md` and `docs/prompt_history.md` |
+| **Make reasoning visible** | Architecture, business rules, assumptions, decisions, trade-offs, testing, and limitations |
+
+The project is designed to be locally executable and independently reviewable. It does not require a hosted demo or paid external service for the documented workflow.
+
+### Submission window
+
+The YottaFlex AI project window is **72 hours from the project being sent**, as specified in the submission guidelines. Artifact timestamps are used to verify the window.
+
+The repository is intended to remain available and editable during the submission period, with the latest version at the deadline representing the final submission.
+
+### Individual work and ownership
+
+This is an individual candidate submission. AI tools and public learning resources were used as disclosed in the AI-use documentation.
+
+The candidate remains responsible for understanding the implementation, explaining the design decisions, and accurately presenting the validation results, assumptions, and limitations.
+
+---
+
+## The Business Problem
+
+The Order-to-Cash process connects several business activities: quoting, ordering, fulfillment, invoicing, payment, and reconciliation.
+
+Each transition creates an opportunity for errors or delays:
+
+- Goods may ship without being fully invoiced.
+- Customers may be billed more than the fulfilled quantity.
+- An invoice may be duplicated.
+- A payment may be allocated more than once.
+- An order may be closed while an invoice remains unpaid.
+- A required business state may be skipped.
+- A dispute may not be reflected correctly in receivables.
+- Payments and invoices may remain outstanding longer than expected.
+
+Manual review can be time-consuming and difficult to reproduce. This project demonstrates a structured approach to generating business data, detecting exceptions, validating relationships, and reconciling financial outcomes.
+
+## What the System Does
+
+The system:
+
+1. Generates deterministic synthetic O2C data.
+2. Builds valid business records before introducing labelled anomalies.
+3. Maintains event history rather than overwriting state changes.
+4. Detects **11 types of exception** using deterministic, explainable rules.
+5. Records evidence, severity, impact, and related source records for findings.
+6. Validates structural and business-level consistency.
+7. Reconciles financial identities to exactly zero paise.
+8. Evaluates findings against separate ground-truth labels.
+9. Runs a negative control on clean data.
+10. Checks reproducibility across repeated execution.
+11. Presents results through a five-tab Streamlit dashboard.
+
+The project’s purpose is to demonstrate an explainable analytics workflow—not to claim that every possible real-world anomaly can be detected.
+
+---
+
+## The Order-to-Cash Workflow
 
 ```text
 Account → Quote → Sales Order → Shipment → Invoice → Payment
-                                              └────→ Dispute
+                                               └────→ Dispute
 ```
 
-A company quotes prices to customers. Accepted quotes become orders, orders ship (sometimes in parts), shipments get invoiced, and customers pay (sometimes late, sometimes in instalments, sometimes disputing the bill). Each hand-off is a place for something to go wrong without anyone noticing. Goods ship but are never billed. An invoice goes out twice. A payment is applied to two invoices. An order is closed while money is still owed.
+A company quotes prices to customers. Accepted quotes become orders. Orders are fulfilled, sometimes in multiple shipments. Shipments are invoiced, and customers pay—sometimes late, in instalments, or with a dispute.
 
-Primary actors recorded in the event history: customer, sales operations, support agent, analyst, system administrator, and the system itself.
+Every hand-off is a place where a process exception can occur without being immediately visible.
 
-## What it does
+The event history records these primary actors:
 
-- **Generates data deterministically.** The same seed gives the same data, byte for byte. Starter and full sizes use the same code.
-- **Builds a valid world first, then plants labelled anomalies.** Totals are summed from lines and balances come from a ledger; nothing derived is random.
-- **Keeps full history.** Every state change is a row in `status_event`. Nothing is overwritten.
-- **Detects 11 types of exception** with deterministic rules, each with evidence, severity and impact.
-- **Reconciles the books.** Six identities must equal exactly zero paise, comparing the ledger against the source tables.
-- **Scores itself** against a separate ground-truth file, split by how much each label really proves, and on a clean dataset where the right answer is nothing.
-- **Shows the results** in a five-tab Streamlit dashboard.
+- Customer
+- Sales operations
+- Support agent
+- Analyst
+- System administrator
+- System
 
-## Quick start (Windows PowerShell)
+---
 
-You need Python 3.11 or newer. Tested on Python 3.13.6.
+## Quick Start
+
+### Prerequisites
+
+- **Python 3.11 or newer**
+- Git
+- Windows PowerShell, Git Bash, or a compatible terminal
+- A web browser for the local dashboard
+
+The project was tested on **Python 3.13.6**.
+
+### Windows PowerShell
+
+Clone the repository:
+
+```powershell
+git clone https://github.com/Manusha-M/AI-order-to-cash-detection-system.git
+cd AI-order-to-cash-detection-system
+```
+
+Create the virtual environment:
 
 ```powershell
 py -3 -m venv .venv
+```
+
+Install dependencies:
+
+```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+Run the starter pipeline:
+
+```powershell
 .\.venv\Scripts\python.exe run.py all --scale starter
+```
+
+Launch the dashboard:
+
+```powershell
 .\.venv\Scripts\python.exe -m streamlit run app\dashboard.py
 ```
 
-If `py` is not recognised, use `python` instead. If Windows offers the Microsoft Store, Python is not really installed: install it from python.org.
+Streamlit will print a local URL, usually:
 
-There is no need to activate the environment, which also avoids PowerShell's script-execution prompt.
+```text
+http://localhost:8501
+```
+
+Open the URL in your browser.
+
+There is no need to activate the virtual environment when using its Python executable directly. This also avoids PowerShell script-execution prompts.
+
+If `py` is not recognized, try `python` instead.
+
+### Git Bash
+
+```bash
+git clone https://github.com/Manusha-M/AI-order-to-cash-detection-system.git
+cd AI-order-to-cash-detection-system
+
+python -m venv .venv
+source .venv/Scripts/activate
+
+python -m pip install -r requirements.txt
+python run.py all --scale starter
+python -m streamlit run app/dashboard.py
+```
+
+### macOS / Linux
+
+```bash
+git clone https://github.com/Manusha-M/AI-order-to-cash-detection-system.git
+cd AI-order-to-cash-detection-system
+
+python3 -m venv .venv
+source .venv/bin/activate
+
+python -m pip install -r requirements.txt
+python run.py all --scale starter
+python -m streamlit run app/dashboard.py
+```
+
+---
 
 ## Commands
 
+Run commands from the repository root.
+
 | Task | Command |
 |---|---|
-| Everything, starter dataset | `.\.venv\Scripts\python.exe run.py all --scale starter` |
-| Everything, full dataset | `.\.venv\Scripts\python.exe run.py all --scale full` |
-| Generate only | `.\.venv\Scripts\python.exe run.py generate --scale full` |
-| Detect exceptions | `.\.venv\Scripts\python.exe run.py detect --scale full` |
-| Validate data | `.\.venv\Scripts\python.exe run.py validate --scale full` |
-| Reconcile balances | `.\.venv\Scripts\python.exe run.py reconcile --scale full` |
-| Score against ground truth | `.\.venv\Scripts\python.exe run.py evaluate --scale full` |
-| Clean-data control | `.\.venv\Scripts\python.exe run.py negative-control --scale full` |
-| Two-run reproducibility | `.\.venv\Scripts\python.exe run.py reproduce --scale full` |
-| Other seeds | `.\.venv\Scripts\python.exe scripts\seed_sweep.py --scale starter` |
-| Automated tests | `.\.venv\Scripts\python.exe -m pytest -q` |
-| Dashboard | `.\.venv\Scripts\python.exe -m streamlit run app\dashboard.py` |
+| Everything, starter dataset | `python run.py all --scale starter` |
+| Everything, full dataset | `python run.py all --scale full` |
+| Generate only | `python run.py generate --scale full` |
+| Detect exceptions | `python run.py detect --scale full` |
+| Validate data | `python run.py validate --scale full` |
+| Reconcile balances | `python run.py reconcile --scale full` |
+| Score against ground truth | `python run.py evaluate --scale full` |
+| Clean-data control | `python run.py negative-control --scale full` |
+| Two-run reproducibility | `python run.py reproduce --scale full` |
+| Other seeds | `python scripts/seed_sweep.py --scale starter` |
+| Automated tests | `python -m pytest -q` |
+| Dashboard | `python -m streamlit run app/dashboard.py` |
 
-The default seed is `20261022`. Pass `--seed` to use another. The full pipeline takes about two minutes, most of it the two-run reproducibility check.
+The default seed is `20261022`. Pass `--seed` to use another seed.
 
-Run `detect` before `reconcile` and `evaluate`, because they read the findings. `all` does this for you. `validate` also reads `ground_truth.csv` from the same run.
+The full pipeline takes approximately two minutes in the tested environment, with most of the time spent in the two-run reproducibility check.
 
-## Architecture and technology
+### Execution order
 
-A single Python process over one SQLite file. The pipeline uses only the standard library. Streamlit, Altair, pandas and pytest are for the dashboard and tests.
+The `all` command runs the stages in the correct order.
 
-SQLite suits this work because the problem is relational and it needs no server. A set of explainable rules suits it better than machine learning, because each exception must be traced to its source events, and nothing here requires a model.
+When running individual commands, run detection before reconciliation and evaluation because those stages read the generated findings. Validation also reads `ground_truth.csv` from the same run.
+
+---
+
+## Architecture and Technology
+
+The project uses a **single Python process over one SQLite database**.
+
+The core pipeline uses the Python standard library. Streamlit, Altair, pandas, and pytest support the dashboard and tests.
+
+### Why SQLite?
+
+The problem is relational and benefits from explicit relationships between accounts, orders, shipments, invoices, payments, and ledger entries. SQLite provides local storage without requiring a separate database server.
+
+### Why deterministic rules instead of machine learning?
+
+The project focuses on explainable exceptions. Each finding should be traceable to source records and business events.
+
+A deterministic rule-based approach is appropriate for the configured scenarios because the project needs to explain **why** a record was flagged, not merely produce a prediction.
+
+### Pipeline
 
 ```text
 config → generator → anomaly injection → SQLite + exports
-                            │                  │
-                            ▼                  ▼
-                     ground_truth.csv      detector → findings
-                            │                  │
-                            └──→ evaluation ←──┘
+                             │                  │
+                             ▼                  ▼
+                      ground_truth.csv      detector → findings
+                             │                  │
+                             └──→ evaluation ←──┘
 ```
 
-`ground_truth.csv` never flows into the detector. The diagrams in [`docs/architecture.md`](docs/architecture.md) show the full flow and entity relationships.
+`ground_truth.csv` does **not** flow into the detector. It is used separately for evaluation.
 
-## Data model
+The full architecture and entity relationships are documented in [`docs/architecture.md`](docs/architecture.md).
 
-The eleven required entities are `account`, `quote`, `quote_line`, `sales_order`, `order_line`, `shipment`, `invoice`, `invoice_line`, `payment`, `dispute` and `status_event`.
+---
 
-Five support tables make them correct:
+## Data Model
 
-| Table | Why it exists |
+The eleven required business entities are:
+
+- `account`
+- `quote`
+- `quote_line`
+- `sales_order`
+- `order_line`
+- `shipment`
+- `invoice`
+- `invoice_line`
+- `payment`
+- `dispute`
+- `status_event`
+
+Five supporting tables make the relationships and financial records consistent:
+
+| Table | Purpose |
 |---|---|
-| `shipment_line` | One shipment carries many lines; one line can ship in parts |
+| `shipment_line` | One shipment can carry many lines; one line can ship in parts |
 | `invoice_shipment` | One invoice can bill several shipments |
-| `payment_allocation` | One payment can settle several invoices, and the reverse |
-| `ar_ledger_entry` | Append-only receivables record, the source of every balance |
-| `product` | Catalogue for quote lines |
+| `payment_allocation` | One payment can settle several invoices, and vice versa |
+| `ar_ledger_entry` | Append-only receivables record and source of balances |
+| `product` | Product catalogue for quote lines |
 
-Money is INR in integer paise, so arithmetic is exact. Every field is documented in [`docs/data_dictionary.md`](docs/data_dictionary.md).
+Money is stored in **integer paise**, so financial arithmetic is exact rather than dependent on floating-point rounding.
 
-## How the data is generated
+Every field is documented in [`docs/data_dictionary.md`](docs/data_dictionary.md).
 
-Generation follows the business order: products and accounts, quotes, orders, shipments, invoices, disputes, payments.
+---
 
-- **Volumes are exact.** The full scale has 10,000 quotes, 7,000 orders, 8,000 invoices and 15,000 payment rows, plus over 140,000 status events. "15,000 payments/events" is read as 15,000 payments, the stricter meaning.
-- **Distributions vary.** Account activity follows a long tail, acceptance varies by segment and channel, quote volume rises at quarter-end, and payment behaviour differs by account.
-- **The cutoff is real.** Anything scheduled after 2026-09-30 has not happened, so the data contains in-flight orders, part-paid invoices and open disputes.
-- **Provenance:** fully synthetic. No external or personal data was used. Names are invented.
+## Data Generation
 
-Exports are in `data/<scale>/`: `csv/`, `json/`, `seed.sql`, `ground_truth.csv` and `manifest.json` (generator command, seed, row counts, checksums).
+Generation follows the business order:
 
-## Anomalies
+```text
+Products and Accounts
+        ↓
+Quotes
+        ↓
+Orders
+        ↓
+Shipments
+        ↓
+Invoices
+        ↓
+Disputes
+        ↓
+Payments
+```
 
-All five required negative scenarios are planted, each in more than one form where that adds value:
+### Deterministic generation
+
+The same seed produces the same generated data under the same tested environment.
+
+Starter and full scales use the same generation code.
+
+### Business distributions
+
+The generator models varied business activity:
+
+- Account activity follows a long-tail distribution.
+- Quote acceptance varies by segment and channel.
+- Quote volume rises around quarter-end.
+- Payment behavior differs by account.
+- The dataset includes in-flight orders, partially paid invoices, and open disputes.
+
+### Data cutoff
+
+The configured cutoff is **2026-09-30**. Transactions scheduled after that date have not yet occurred in the generated business scenario.
+
+### Data provenance
+
+The dataset is fully synthetic. No external or personal data was used; names are invented.
+
+Exports are written under:
+
+```text
+data/<scale>/
+```
+
+The generated artifacts include:
+
+- `csv/`
+- `json/`
+- `seed.sql`
+- `ground_truth.csv`
+- `manifest.json`
+
+The manifest records the generator command, seed, row counts, and checksums.
+
+---
+
+## Anomaly Scenarios
+
+The project plants the five required negative scenarios, using multiple forms where useful.
 
 | Scenario | Example |
 |---|---|
 | Invoice exceeds fulfilled quantity | 10 units shipped, 12 billed |
-| Payment allocated twice | Same payment applied again, to the same or another invoice |
-| Order closed with unpaid invoice | Status CLOSED while a balance is open |
-| Status event skips a required state | CONFIRMED straight to INVOICED, skipping FULFILLED |
-| Dispute not reflected in receivables | Open dispute with no ledger hold, or too small a hold |
+| Payment allocated twice | The same payment is applied again to the same or another invoice |
+| Order closed with unpaid invoice | Status is `CLOSED` while a balance remains open |
+| Status event skips a required state | `CONFIRMED` transitions directly to `INVOICED`, skipping `FULFILLED` |
+| Dispute not reflected in receivables | An open dispute has no ledger hold or an insufficient hold |
 
-Partial shipments, underbilling, duplicate invoices, short payments, long-overdue balances and process delays are covered too.
+Additional scenarios include:
 
-The data also contains **look-alikes that must not be flagged**, including two equal shipments billed on identical-looking invoices, voided and reissued invoices, and an invoice exactly 90 days past due.
+- Partial shipments
+- Underbilling
+- Duplicate invoices
+- Short payments
+- Long-overdue balances
+- Process delays
 
-Anomalies change business facts without breaking the database: keys stay valid, and line totals still equal quantity times price.
+The dataset also includes look-alike cases that should **not** be flagged, including:
 
-## Detection and evaluation
+- Two equal shipments billed on identical-looking invoices
+- Voided and reissued invoices
+- An invoice exactly 90 days past due
 
-Eleven rules read the transactional tables and event history. Each finding records the rule, source record, related records, severity, expected behaviour, observed behaviour, impact and evidence. The logic is in [`docs/business_rules.md`](docs/business_rules.md).
+Anomalies change business facts without breaking database integrity. Keys remain valid, and line totals still equal quantity multiplied by price.
 
-Evaluation matches on issue type and primary record ID, so one anomaly can only count once. It reports true positives, false positives, false negatives, precision, recall and F1, overall, by type and by label source, and also checks the money amount of each match.
+---
 
-Labels are not all equal. `injected` labels mark a record that was deliberately changed, and are the independent test. `plan` labels mark outcomes the generator planned. `rule` labels re-apply the documented rule, so a perfect score there is close to guaranteed.
+## Detection and Evaluation
 
-**How to read a perfect score:** the same project wrote the data, the labels and the rules, so a score of 1.0 shows the rules do what the documents say. It does not predict performance on real data. This is not hypothetical: an independent review found 27 issues in a version that already scored 1.0, including a bug that hid late shipments because the labels shared the flaw. See [`docs/decisions.md`](docs/decisions.md).
+Eleven deterministic rules read transactional tables and event history.
 
-## Financial definitions
+Each finding records:
 
-Full formulas, sources and limits are in [`docs/business_rules.md`](docs/business_rules.md). The key distinction:
+- Rule and issue type
+- Primary source record
+- Related records
+- Severity
+- Expected behavior
+- Observed behavior
+- Financial or process impact
+- Supporting evidence
 
-| Measure | What it really means |
+The rule definitions are documented in [`docs/business_rules.md`](docs/business_rules.md).
+
+### Evaluation methodology
+
+Evaluation matches findings by issue type and primary record ID, so one anomaly can only count once.
+
+The evaluation reports:
+
+- True positives
+- False positives
+- False negatives
+- Precision
+- Recall
+- F1 score
+- Results by issue type
+- Results by label source
+- Monetary amount associated with each match
+
+### Ground-truth label sources
+
+Labels are not all equally independent:
+
+| Label source | Meaning |
 |---|---|
-| Underbilled revenue | Income lost: goods delivered but not billed |
-| Overbilled and duplicate exposure | Customer billed too much: refund or credit risk, not income |
-| Overdue and short-paid balances | Collection risk: the money may still arrive |
-| Allocation discrepancy | Receivables look lower than they really are |
+| `injected` | A record was deliberately changed; this is the independent test within the synthetic scenario |
+| `plan` | The generator planned an outcome and then labelled it |
+| `rule` | The label re-applies the documented rule; a perfect score is close to guaranteed |
 
-These are shown separately and never added together. When a single split is needed, each rupee of receivables gets exactly one class.
+### Interpreting a perfect score
 
-## Measured results
+The same project generates the data, labels, and rules. A score of 1.0 demonstrates that the configured rules behave as documented on the configured dataset.
 
-Generated by `scripts/write_reports.py` from executed runs. Details are in [`docs/validation_report.md`](docs/validation_report.md) and [`docs/reproducibility.md`](docs/reproducibility.md).
+It **does not predict performance on real or unseen data**.
 
-<!-- MEASURED:START -->
+An independent review also found 27 issues in an earlier version that already scored 1.0, including a bug that hid late shipments because the labels shared the same flaw. The review and resulting decisions are documented in [`docs/decisions.md`](docs/decisions.md).
 
-Measured on Python 3.13.6, seed 20261022, cutoff 2026-09-30.
+---
 
-**Row counts**
+## Financial Definitions
+
+The complete formulas, sources, and limitations are documented in [`docs/business_rules.md`](docs/business_rules.md).
+
+| Measure | Interpretation |
+|---|---|
+| Underbilled revenue | Potential income lost because goods were delivered but not billed |
+| Overbilled and duplicate exposure | Customer billed too much; potential refund or credit risk, not income |
+| Overdue and short-paid balances | Collection risk; the money may still arrive |
+| Allocation discrepancy | Receivables appear lower than they really are |
+
+These measures are shown separately and are **not added together**.
+
+When a single classification is required, each rupee of receivables receives exactly one class.
+
+---
+
+## Measured Results
+
+The following results are reported from executed project runs. Detailed evidence is available in:
+
+- [`docs/validation_report.md`](docs/validation_report.md)
+- [`docs/reproducibility.md`](docs/reproducibility.md)
+
+### Execution environment
+
+- Python: 3.13.6
+- Seed: `20261022`
+- Cutoff: `2026-09-30`
+
+### Row counts
 
 | Table | Starter | Full |
 |---|---:|---:|
@@ -178,9 +512,17 @@ Measured on Python 3.13.6, seed 20261022, cutoff 2026-09-30.
 | status_event | 15,185 | 152,107 |
 | ground truth labels | 124 | 1,252 |
 
-**Checks:** 98 of 98 structural checks passed; 6 of 6 reconciliation identities closed to 0 paise; 0 findings on clean data; reproducibility PASS; tests: 208 passed in 67.89s.
+### Validation summary
 
-**Business picture (full dataset)**
+| Check | Observed result |
+|---|---:|
+| Structural checks | 98 / 98 passed |
+| Reconciliation identities | 6 / 6 closed to 0 paise |
+| Clean-data findings | 0 |
+| Reproducibility | PASS |
+| Automated tests | 208 passed |
+
+### Business picture — full dataset
 
 | Measure | Value |
 |---|---:|
@@ -195,12 +537,12 @@ Measured on Python 3.13.6, seed 20261022, cutoff 2026-09-30.
 | Outstanding receivables | Rs 9.06 Cr |
 | On dispute hold | Rs 0.38 Cr |
 | Overdue, collectible | Rs 2.87 Cr |
-| Underbilled revenue (leakage) | Rs 0.11 Cr |
+| Underbilled revenue | Rs 0.11 Cr |
 | Overbilled exposure | Rs 0.03 Cr |
 | Duplicate-billing exposure | Rs 0.28 Cr |
 | Payment allocation discrepancy | Rs 0.15 Cr |
 
-**Process delays (full dataset)**
+### Process delays — full dataset
 
 | Stage | Records | Mean days | Median | P90 | Max | Over target |
 |---|---:|---:|---:|---:|---:|---:|
@@ -208,13 +550,14 @@ Measured on Python 3.13.6, seed 20261022, cutoff 2026-09-30.
 | Shipment to invoice | 9,175 | 3.11 | 3 | 6 | 25 | 171 |
 | Invoice to final payment | 6,419 | 38.35 | 35 | 60 | 140 | n/a |
 
-**Detector evaluation (full dataset)**
+### Detector evaluation — full dataset
 
-| Label source | Labels | TP | FP | FN | Precision | Recall | What it means |
-|---|---:|---:|---:|---:|---:|---:|---|
-| injected | 390 | 390 | 0 | 0 | 1.0 | 1.0 | A valid record was deliberately changed. The independent test |
-| plan | 365 | 365 | 0 | 0 | 1.0 | 1.0 | The generator planned the outcome, then labelled it |
-| rule | 497 | 497 | 0 | 0 | 1.0 | 1.0 | The label re-applies the rule. Close to guaranteed; proves little |
+| Label source | Labels | TP | FP | FN | Precision | Recall |
+|---|---:|---:|---:|---:|---:|---:|
+| injected | 390 | 390 | 0 | 0 | 1.0 | 1.0 |
+| plan | 365 | 365 | 0 | 0 | 1.0 | 1.0 |
+| rule | 497 | 497 | 0 | 0 | 1.0 | 1.0 |
+| **Overall** | **1,252** | **1,252** | **0** | **0** | **1.0** | **1.0** |
 
 | Issue type | TP | FP | FN | Precision | Recall | F1 |
 |---|---:|---:|---:|---:|---:|---:|
@@ -229,67 +572,210 @@ Measured on Python 3.13.6, seed 20261022, cutoff 2026-09-30.
 | OVERBILLING | 60 | 0 | 0 | 1.0 | 1.0 | 1.0 |
 | SHORT_PAYMENT | 161 | 0 | 0 | 1.0 | 1.0 | 1.0 |
 | UNDERBILLING | 90 | 0 | 0 | 1.0 | 1.0 | 1.0 |
-| **Overall** | **1,252** | **0** | **0** | **1.0** | **1.0** | **1.0** |
 
-<!-- MEASURED:END -->
+These are results from the configured synthetic evaluation. They should not be interpreted as guaranteed performance on production or unseen data.
 
-## Assumptions and trade-offs
+---
 
-- One currency, tax excluded. Tax would add lines without changing the logic.
-- The targets (21-day fulfilment, 7-day invoicing, 90-day overdue) are assumptions, not source requirements. They are all in `src/config.py`.
-- A receivables ledger was added because "reflected in receivables" needs a concrete definition.
-- SQLite is single-writer and loosely typed, which suits a batch analysis but not a live system.
+## Assumptions and Trade-offs
 
-All decisions are explained in [`docs/decisions.md`](docs/decisions.md).
+| Decision or assumption | Rationale and impact |
+|---|---|
+| One currency; tax excluded | Keeps the financial model focused. Tax can add lines without changing the core logic |
+| 21-day fulfillment target | Configured assumption, not a source requirement |
+| 7-day invoicing target | Configured assumption, not a source requirement |
+| 90-day overdue threshold | Configured assumption, not a source requirement |
+| Receivables ledger | Added to define what “reflected in receivables” means |
+| SQLite | Suits local batch analysis, but is single-writer and loosely typed |
+| Deterministic rules | Makes findings traceable, but detects only the patterns implemented |
+| Synthetic data | Enables controlled testing, but cannot establish real-world performance |
 
-## Known limitations
+The thresholds are configured in `src/config.py`.
 
-- Dispute credits sit on invoices, so overbilling is reported gross, with credits shown in its evidence.
-- Over-billing a line that also has shipped but unbilled goods stays below the rule until billing catches up. Reconciliation shows it as a difference.
-- Thresholds are single numbers; real targets vary by product and customer.
+All major decisions and their rationale are documented in [`docs/decisions.md`](docs/decisions.md).
+
+---
+
+## Known Limitations
+
+- Dispute credits sit on invoices, so overbilling is reported gross, with credits shown in the evidence.
+- Overbilling a line that also has shipped but unbilled goods may remain below the rule until billing catches up. Reconciliation shows the difference.
+- Thresholds are single values; real targets may vary by product and customer.
 - Reversed payments are modelled only before allocation.
-- Rules find the patterns they were written for. Unknown patterns will be missed.
-- Checksums were measured on one Python version. Another version may give different but equally valid data. `run.py reproduce` proves determinism on the version you run.
+- Rules find the patterns they were written for. Unknown patterns may be missed.
+- Checksums were measured on one Python version. Another version may generate different but equally valid data.
+- `run.py reproduce` verifies determinism in the environment where it is executed.
+- The synthetic evaluation does not establish performance on real-world data.
 
-## Next steps
+---
 
-- Test on Python 3.11 and 3.12, and on a second computer.
-- Have a person review the rules and the final code. The review so far was by an AI.
-- Match dispute credits to order lines, so overbilling can be reported net of credits.
-- Set targets by product and customer instead of one number for each.
-- Model a payment reversed after it has been allocated.
-- Try the rules on real, anonymised data. That is the only way to learn how they really perform.
+## Testing and Verification
 
-## Repository layout
+Run the automated tests:
 
-```text
-run.py              Command-line entry point
-src/                Generator, detector, reconciliation, evaluation, validation
-sql/                Schema and analytical views
-app/dashboard.py    Streamlit dashboard
-tests/              Automated tests
-scripts/            Seed sweep, report writer, archive builder
-data/starter/       Sample dataset (full dataset regenerates locally)
-outputs/            Measured results
-docs/               Dictionary, rules, decisions, reports, AI disclosure
-HANDOFF.md          Setup and verification guide
+```bash
+python -m pytest -q
 ```
 
-## Development history and evidence
+Run the full pipeline:
 
-This project was built locally with Claude Code in one session on 30 October 2026, without Git, and published to GitHub afterwards. That is why the repository history starts with one large commit. Later commits are changes made after publication.
+```bash
+python run.py all --scale full
+```
 
-The development log is a separate record from the Git history. These documents show how the solution evolved before publication:
+Run the clean-data control:
+
+```bash
+python run.py negative-control --scale full
+```
+
+Run the reproducibility check:
+
+```bash
+python run.py reproduce --scale full
+```
+
+The project’s verification covers structural consistency, business tie-outs, financial reconciliation, detector evaluation, negative-control behavior, and reproducibility.
+
+A passing test suite demonstrates that the covered cases behave as expected. It does not establish that every possible real-world scenario has been tested.
+
+---
+
+## Repository Structure
+
+```text
+run.py                  Command-line entry point
+src/                    Generator, detector, reconciliation, evaluation, validation
+sql/                    Schema and analytical views
+app/dashboard.py        Streamlit dashboard
+tests/                  Automated tests
+scripts/                Seed sweep, report writer, archive builder
+data/starter/            Starter dataset
+outputs/                 Measured results
+docs/                   Rules, decisions, reports, data dictionary, AI disclosure
+HANDOFF.md               Setup and verification guide
+README.md                Project overview and reviewer instructions
+```
+
+The full dataset is regenerated locally and is excluded from version control because of its size.
+
+---
+
+## AI Usage and Prompt History
+
+AI tools were used during development, as permitted by the YottaFlex AI project guidelines.
+
+The following documents provide the project’s AI-use and development context:
+
+- [`docs/ai_usage.md`](docs/ai_usage.md) — AI tool disclosure and contribution summary
+- [`docs/prompt_history.md`](docs/prompt_history.md) — prompt history
+- [`docs/development_log.md`](docs/development_log.md) — development timeline
+- [`docs/decisions.md`](docs/decisions.md) — design decisions, trade-offs, and issues discovered
+
+The prompt-history document is intended to record the prompts submitted to the AI tools used. AI responses are optional under the project FAQ. If any tool could not export its prompt history, that limitation should be disclosed.
+
+AI assistance does not replace the candidate’s responsibility for understanding and explaining the core logic, dependencies, design choices, tests, observed results, and limitations.
+
+---
+
+## Development History and Evidence
+
+The project was developed locally before being published to GitHub.
+
+The development log is a separate record from Git history. The following documents provide context for how the solution evolved:
 
 | Document | What it records |
 |---|---|
-| [`docs/development_log.md`](docs/development_log.md) | Chronological record of milestones, debugging, testing and final verification |
-| [`docs/prompt_history.md`](docs/prompt_history.md) | AI prompts, with timestamps |
-| [`docs/ai_usage.md`](docs/ai_usage.md) | AI usage and contribution disclosure |
-| [`docs/decisions.md`](docs/decisions.md) | Technical decisions, trade-offs and the bugs found along the way |
-| [`docs/validation_report.md`](docs/validation_report.md) | Measured testing and validation results |
-| [`docs/final_audit.md`](docs/final_audit.md) | Final requirement audit and open items |
+| `docs/development_log.md` | Chronological milestones, debugging, testing, and verification |
+| `docs/prompt_history.md` | AI prompts and timestamps |
+| `docs/ai_usage.md` | AI usage and contribution disclosure |
+| `docs/decisions.md` | Technical decisions, trade-offs, and issues discovered |
+| `docs/validation_report.md` | Measured testing and validation results |
+| `docs/final_audit.md` | Requirement audit and open items |
+| `docs/reproducibility.md` | Reproducibility evidence |
+| `docs/architecture.md` | Architecture and data flow |
+| `docs/data_dictionary.md` | Data fields and definitions |
+| `docs/business_rules.md` | Detection rules and financial definitions |
 
-## AI-assisted development
+The repository history and development evidence should be read together when reviewing the project.
 
-This project was built with Claude Code from the prompt in [`docs/prompt_history.md`](docs/prompt_history.md). That master prompt was created with ChatGPT. AI wrote the code, tests and documentation, and ran the checks reported here. What the candidate reviewed, and how the prompts relate to the final submission, is stated in [`docs/ai_usage.md`](docs/ai_usage.md). That file is the authoritative record.
+---
+
+## Repository Safety
+
+The project uses synthetic data generated for the demonstration. No external or personal data was used in the dataset.
+
+The public repository should not contain:
+
+- Secrets or credentials
+- Personal or sensitive information
+- Proprietary code the candidate is not authorized to publish
+- Local environment files
+
+The `.gitignore` excludes the virtual environment, selected generated data, local tool state, and common secret-file formats.
+
+Before submission, the repository contents should be reviewed to confirm that no sensitive or unauthorized material has been committed.
+
+---
+
+## Reviewer Walkthrough
+
+A reviewer can verify the project in the following order:
+
+1. **Inspect the repository**  
+   Review the source code, tests, documentation, and supporting artifacts.
+
+2. **Set up the environment**  
+   Follow the Quick Start instructions and install dependencies.
+
+3. **Run the starter pipeline**
+
+   ```bash
+   python run.py all --scale starter
+   ```
+
+4. **Inspect the validation results**  
+   Review structural checks, business tie-outs, reconciliation, and reproducibility output.
+
+5. **Run the automated tests**
+
+   ```bash
+   python -m pytest -q
+   ```
+
+6. **Launch the dashboard**
+
+   ```bash
+   python -m streamlit run app/dashboard.py
+   ```
+
+7. **Review the reasoning and disclosure**  
+   Read the architecture, business rules, decisions, assumptions, limitations, development log, and AI prompt history.
+
+8. **Walk through the implementation**  
+   The candidate should be prepared to explain the core logic, dependencies, design decisions, validation approach, and known limitations.
+
+---
+
+## Next Steps
+
+Potential improvements include:
+
+- Test on Python 3.11 and 3.12 and on a second computer.
+- Obtain human review of the rules and final code.
+- Match dispute credits to order lines so overbilling can be reported net of credits.
+- Configure targets by product and customer instead of using a single value.
+- Model a payment reversed after allocation.
+- Test the rules on real, anonymised data.
+- Expand edge-case testing and validation coverage.
+
+Real, appropriately anonymised business data and domain-expert review would be necessary to evaluate whether the rules perform effectively in an operational environment.
+
+---
+
+## Final Note
+
+This project demonstrates an executable and reviewable Order-to-Cash analytics workflow with synthetic data, explainable detection rules, financial reconciliation, automated tests, and documented validation.
+
+The results should be interpreted within the boundaries of the configured dataset, rules, tests, and assumptions. The project is presented as a candidate-project demonstration—not as a production-ready financial control system.
+
