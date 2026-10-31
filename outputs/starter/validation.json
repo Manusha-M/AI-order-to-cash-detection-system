@@ -1,0 +1,846 @@
+{
+  "structural_checks": 98,
+  "structural_failed": 0,
+  "business_checks": 6,
+  "business_failed": 0,
+  "results": [
+    {
+      "check_id": "S01.product",
+      "category": "STRUCTURAL",
+      "description": "product primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.account",
+      "category": "STRUCTURAL",
+      "description": "account primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.quote",
+      "category": "STRUCTURAL",
+      "description": "quote primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.quote_line",
+      "category": "STRUCTURAL",
+      "description": "quote_line primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.sales_order",
+      "category": "STRUCTURAL",
+      "description": "sales_order primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.order_line",
+      "category": "STRUCTURAL",
+      "description": "order_line primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.shipment",
+      "category": "STRUCTURAL",
+      "description": "shipment primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.shipment_line",
+      "category": "STRUCTURAL",
+      "description": "shipment_line primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.invoice",
+      "category": "STRUCTURAL",
+      "description": "invoice primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.invoice_line",
+      "category": "STRUCTURAL",
+      "description": "invoice_line primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.invoice_shipment",
+      "category": "STRUCTURAL",
+      "description": "invoice_shipment primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.payment",
+      "category": "STRUCTURAL",
+      "description": "payment primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.payment_allocation",
+      "category": "STRUCTURAL",
+      "description": "payment_allocation primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.dispute",
+      "category": "STRUCTURAL",
+      "description": "dispute primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.ar_ledger_entry",
+      "category": "STRUCTURAL",
+      "description": "ar_ledger_entry primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S01.status_event",
+      "category": "STRUCTURAL",
+      "description": "status_event primary key unique",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S02.fk",
+      "category": "STRUCTURAL",
+      "description": "Declared foreign keys resolve",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S02.events",
+      "category": "STRUCTURAL",
+      "description": "Every status event points at a real record",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S03",
+      "category": "STRUCTURAL",
+      "description": "Required columns are populated",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S04",
+      "category": "STRUCTURAL",
+      "description": "Enumerated columns hold allowed values",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.product",
+      "category": "STRUCTURAL",
+      "description": "product IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.account",
+      "category": "STRUCTURAL",
+      "description": "account IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.quote",
+      "category": "STRUCTURAL",
+      "description": "quote IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.quote_line",
+      "category": "STRUCTURAL",
+      "description": "quote_line IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.sales_order",
+      "category": "STRUCTURAL",
+      "description": "sales_order IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.order_line",
+      "category": "STRUCTURAL",
+      "description": "order_line IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.shipment",
+      "category": "STRUCTURAL",
+      "description": "shipment IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.shipment_line",
+      "category": "STRUCTURAL",
+      "description": "shipment_line IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.invoice",
+      "category": "STRUCTURAL",
+      "description": "invoice IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.invoice_line",
+      "category": "STRUCTURAL",
+      "description": "invoice_line IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.payment",
+      "category": "STRUCTURAL",
+      "description": "payment IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.payment_allocation",
+      "category": "STRUCTURAL",
+      "description": "payment_allocation IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.dispute",
+      "category": "STRUCTURAL",
+      "description": "dispute IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.ar_ledger_entry",
+      "category": "STRUCTURAL",
+      "description": "ar_ledger_entry IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S05.status_event",
+      "category": "STRUCTURAL",
+      "description": "status_event IDs well-formed and contiguous",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.01",
+      "category": "STRUCTURAL",
+      "description": "order account matches quote account",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.02",
+      "category": "STRUCTURAL",
+      "description": "orders come only from accepted quotes",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.03",
+      "category": "STRUCTURAL",
+      "description": "order line belongs to the order's quote",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.04",
+      "category": "STRUCTURAL",
+      "description": "shipment line belongs to the shipment's order",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.05",
+      "category": "STRUCTURAL",
+      "description": "invoice account matches order account",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.06",
+      "category": "STRUCTURAL",
+      "description": "invoice line belongs to the invoice's order",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.07",
+      "category": "STRUCTURAL",
+      "description": "invoice covers shipments of its own order",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.08",
+      "category": "STRUCTURAL",
+      "description": "allocation stays within one account",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.09",
+      "category": "STRUCTURAL",
+      "description": "no allocation on a reversed or unallocated payment",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.10",
+      "category": "STRUCTURAL",
+      "description": "no allocation against a void invoice",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.11",
+      "category": "STRUCTURAL",
+      "description": "dispute account matches invoice account",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.12",
+      "category": "STRUCTURAL",
+      "description": "order line matches its quote line",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.13",
+      "category": "STRUCTURAL",
+      "description": "payment ledger entry sits on its allocation's invoice",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.14",
+      "category": "STRUCTURAL",
+      "description": "dispute ledger entry sits on its dispute's invoice",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S06.15",
+      "category": "STRUCTURAL",
+      "description": "every ledger entry on a real source",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.01",
+      "category": "STRUCTURAL",
+      "description": "quote valid_until after quote_date",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.02",
+      "category": "STRUCTURAL",
+      "description": "order not before its quote",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.03",
+      "category": "STRUCTURAL",
+      "description": "shipment not before its order",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.04",
+      "category": "STRUCTURAL",
+      "description": "delivery not before shipping",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.05",
+      "category": "STRUCTURAL",
+      "description": "invoice not before the shipments it covers",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.06",
+      "category": "STRUCTURAL",
+      "description": "due date equals invoice date plus terms",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.07",
+      "category": "STRUCTURAL",
+      "description": "allocation not before its payment",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.08",
+      "category": "STRUCTURAL",
+      "description": "allocation not before its invoice",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.09",
+      "category": "STRUCTURAL",
+      "description": "dispute not before its invoice",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.10",
+      "category": "STRUCTURAL",
+      "description": "dispute resolved after it opened",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.11",
+      "category": "STRUCTURAL",
+      "description": "no shipment dated after cutoff",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.12",
+      "category": "STRUCTURAL",
+      "description": "no invoice dated after cutoff",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.13",
+      "category": "STRUCTURAL",
+      "description": "no payment dated after cutoff",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.14",
+      "category": "STRUCTURAL",
+      "description": "no event dated after cutoff",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.15",
+      "category": "STRUCTURAL",
+      "description": "no allocation dated after cutoff",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.16",
+      "category": "STRUCTURAL",
+      "description": "no ledger entry dated after cutoff",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S07.17",
+      "category": "STRUCTURAL",
+      "description": "no dispute dated after cutoff",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S08.01",
+      "category": "STRUCTURAL",
+      "description": "quote line total = qty x net price",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S08.02",
+      "category": "STRUCTURAL",
+      "description": "quote line net price = list less discount",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S08.03",
+      "category": "STRUCTURAL",
+      "description": "order line total = qty x price",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S08.04",
+      "category": "STRUCTURAL",
+      "description": "invoice line total = qty x price",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S08.05",
+      "category": "STRUCTURAL",
+      "description": "quote total = sum of lines",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S08.06",
+      "category": "STRUCTURAL",
+      "description": "order total = sum of lines",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S08.07",
+      "category": "STRUCTURAL",
+      "description": "invoice total = sum of lines",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S08.08",
+      "category": "STRUCTURAL",
+      "description": "every header has at least one line",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S08.09",
+      "category": "STRUCTURAL",
+      "description": "shipped quantity never exceeds ordered",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S08.10",
+      "category": "STRUCTURAL",
+      "description": "ledger posting = invoice total",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S08.11",
+      "category": "STRUCTURAL",
+      "description": "ledger balance never negative",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S08.12",
+      "category": "STRUCTURAL",
+      "description": "paid invoices have zero balance",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S09.01",
+      "category": "STRUCTURAL",
+      "description": "FULFILLED or later orders are fully shipped",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S09.02",
+      "category": "STRUCTURAL",
+      "description": "partly fulfilled orders have shipped some but not all",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S09.03",
+      "category": "STRUCTURAL",
+      "description": "orders not yet fulfilled have shipped nothing",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S09.04",
+      "category": "STRUCTURAL",
+      "description": "INVOICED or CLOSED orders have every shipment billed",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S09.05",
+      "category": "STRUCTURAL",
+      "description": "shipped shipments have a shipped date",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S09.06",
+      "category": "STRUCTURAL",
+      "description": "planned shipments have no shipped date",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S09.07",
+      "category": "STRUCTURAL",
+      "description": "delivered shipments have a delivered date",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S09.08",
+      "category": "STRUCTURAL",
+      "description": "customers have an order and prospects do not",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S09.09",
+      "category": "STRUCTURAL",
+      "description": "credit stays within the disputed amount",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S09.10",
+      "category": "STRUCTURAL",
+      "description": "only credited disputes carry a credit",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S10.status",
+      "category": "STRUCTURAL",
+      "description": "Record status equals its latest event",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S10.order",
+      "category": "STRUCTURAL",
+      "description": "Event times strictly rise with event ID per record",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S13.integers",
+      "category": "STRUCTURAL",
+      "description": "Integer columns hold integers",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S13.dates",
+      "category": "STRUCTURAL",
+      "description": "Date columns hold valid ISO dates",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S11.quote",
+      "category": "STRUCTURAL",
+      "description": "quote row count is 1,000 (found 1,000)",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S11.sales_order",
+      "category": "STRUCTURAL",
+      "description": "sales_order row count is 700 (found 700)",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S11.invoice",
+      "category": "STRUCTURAL",
+      "description": "invoice row count is 800 (found 800)",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S11.payment",
+      "category": "STRUCTURAL",
+      "description": "payment row count is 1,500 (found 1,500)",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "S12",
+      "category": "STRUCTURAL",
+      "description": "Ground-truth labels point at existing records",
+      "problems": 0,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "B.OVERBILLING",
+      "category": "BUSINESS",
+      "description": "OVERBILLING present in data",
+      "problems": 6,
+      "planted": 6,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "B.DUPLICATE_INVOICE",
+      "category": "BUSINESS",
+      "description": "DUPLICATE_INVOICE present in data",
+      "problems": 6,
+      "planted": 6,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "B.DUPLICATE_ALLOCATION",
+      "category": "BUSINESS",
+      "description": "DUPLICATE_ALLOCATION present in data",
+      "problems": 6,
+      "planted": 6,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "B.CLOSED_ORDER_UNPAID",
+      "category": "BUSINESS",
+      "description": "CLOSED_ORDER_UNPAID present in data",
+      "problems": 6,
+      "planted": 6,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "B.DISPUTE_NOT_IN_AR",
+      "category": "BUSINESS",
+      "description": "DISPUTE_NOT_IN_AR present in data",
+      "problems": 6,
+      "planted": 6,
+      "status": "PASS",
+      "sample": []
+    },
+    {
+      "check_id": "B.ILLEGAL_TRANSITION",
+      "category": "BUSINESS",
+      "description": "Illegal transitions present",
+      "problems": 6,
+      "planted": 6,
+      "status": "PASS",
+      "sample": []
+    }
+  ]
+}

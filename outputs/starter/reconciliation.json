@@ -1,0 +1,154 @@
+{
+  "metrics": {
+    "funnel_paise": {
+      "quoted": 7261519750,
+      "accepted": 5279197875,
+      "ordered": 5207383525,
+      "fulfilled": 4937745500,
+      "invoiced": 4901539508,
+      "cash_received": 3937498352,
+      "outstanding_ar": 1071811100
+    },
+    "cash_paise": {
+      "cash_received": 3937498352,
+      "cash_reversed": 174931179,
+      "applied_to_invoices": 3804868454,
+      "unapplied_cash": 138833159,
+      "credits_issued": 24859954
+    },
+    "receivables_paise": {
+      "outstanding": 1071811100,
+      "disputed_on_hold": 60181645,
+      "collectible": 1011629455,
+      "overdue_collectible": 303712185,
+      "ar_understated_by_false_allocation": 6203261
+    },
+    "aging": [
+      {
+        "aging_bucket": "0 Not due",
+        "invoices": 107,
+        "collectible_paise": 707917270
+      },
+      {
+        "aging_bucket": "1 1-30 days",
+        "invoices": 25,
+        "collectible_paise": 129494491
+      },
+      {
+        "aging_bucket": "2 31-60 days",
+        "invoices": 13,
+        "collectible_paise": 91259728
+      },
+      {
+        "aging_bucket": "3 61-90 days",
+        "invoices": 6,
+        "collectible_paise": 11363401
+      },
+      {
+        "aging_bucket": "4 91-120 days",
+        "invoices": 6,
+        "collectible_paise": 14701256
+      },
+      {
+        "aging_bucket": "5 Over 120 days",
+        "invoices": 22,
+        "collectible_paise": 56893309
+      }
+    ],
+    "receivable_classes_paise": {
+      "disputed_on_hold": 60181645,
+      "duplicate_billing": 22371550,
+      "long_overdue": 57843404,
+      "short_paid": 656930,
+      "other_overdue": 227556301,
+      "not_due": 703201270
+    },
+    "leakage_paise": {
+      "underbilled_revenue": 14343767,
+      "overbilled_exposure": 4487375,
+      "duplicate_billing_exposure": 22371550,
+      "payment_allocation_discrepancy": 6203261,
+      "closed_order_unpaid": 22392563,
+      "dispute_not_reserved": 33438596,
+      "short_paid": 10764159,
+      "long_overdue": 57843404
+    },
+    "delays": {
+      "order_to_fulfilment": {
+        "count": 651,
+        "mean_days": 6.19,
+        "median_days": 5,
+        "p90_days": 11,
+        "max_days": 52,
+        "sla_days": 21,
+        "over_sla": 11
+      },
+      "fulfilment_to_invoice": {
+        "count": 917,
+        "mean_days": 3.19,
+        "median_days": 3,
+        "p90_days": 6,
+        "max_days": 24,
+        "sla_days": 7,
+        "over_sla": 16
+      },
+      "invoice_to_final_payment": {
+        "count": 611,
+        "mean_days": 36.19,
+        "median_days": 32,
+        "p90_days": 63,
+        "max_days": 131
+      }
+    }
+  },
+  "identities": [
+    {
+      "id": "REC-1",
+      "description": "Live invoice headers equal ledger postings net of voids",
+      "left_paise": 4901539508,
+      "right_paise": 4901539508,
+      "difference_paise": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "REC-2",
+      "description": "Per invoice: ledger payment entries equal allocations (sum of gaps)",
+      "left_paise": 0,
+      "right_paise": 0,
+      "difference_paise": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "REC-3",
+      "description": "Per invoice: ledger balance = total - allocations - dispute credits from source tables (sum of gaps)",
+      "left_paise": 0,
+      "right_paise": 0,
+      "difference_paise": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "REC-4",
+      "description": "Cash + over-allocation found by the detector = allocations + unapplied cash",
+      "left_paise": 3943701613,
+      "right_paise": 3943701613,
+      "difference_paise": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "REC-5",
+      "description": "Billing bridge: fulfilled + duplicates + overbilled - underbilled - awaiting invoice = invoiced",
+      "left_paise": 4901539508,
+      "right_paise": 4901539508,
+      "difference_paise": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "REC-6",
+      "description": "Partition check: receivable classes add up to outstanding, each rupee in one class",
+      "left_paise": 1071811100,
+      "right_paise": 1071811100,
+      "difference_paise": 0,
+      "status": "PASS"
+    }
+  ]
+}

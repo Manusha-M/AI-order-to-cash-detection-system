@@ -1,0 +1,82 @@
+{
+  "generator_command": "python run.py generate --scale starter --seed 20261022",
+  "generator_version": "1.0",
+  "seed": 20261022,
+  "scale": "starter",
+  "anomalies_injected": true,
+  "cutoff_date": "2026-09-30",
+  "currency": "INR, integer paise",
+  "data_provenance": "Fully synthetic. No external, personal or confidential data was used; account and product names are invented by src/generator.py.",
+  "tables": {
+    "product": {
+      "rows": 40,
+      "sha256": "af7297a0762a8a392fc41f0c7031d3981aa8785a80c8c83974dce04cb685d3f2"
+    },
+    "account": {
+      "rows": 80,
+      "sha256": "681b3dfe9af98b9c1d22bf3cde421574a59b520ca0261e2980918d063c6f88c9"
+    },
+    "quote": {
+      "rows": 1000,
+      "sha256": "927dc26aee2b65447eb6ad61f6342fae268bc70982f1a808807ce437323ce2ce"
+    },
+    "quote_line": {
+      "rows": 2219,
+      "sha256": "9062f822bf27f8918f0036ff57345ad6303adfed2121400fcffd557b45b4bafc"
+    },
+    "sales_order": {
+      "rows": 700,
+      "sha256": "6435f0a78d495c23c241a58e47c7075c6b869e891248c72ab4e9ddbcad089879"
+    },
+    "order_line": {
+      "rows": 1536,
+      "sha256": "680a8436f45f0062040ad0aa2032128e51c2763c7676a087162e951480e24f9d"
+    },
+    "shipment": {
+      "rows": 954,
+      "sha256": "663a95de932ebdc5331175eefba32002cbcd980aff626c9b4cff6258fbe81d43"
+    },
+    "shipment_line": {
+      "rows": 1902,
+      "sha256": "dc0000947ef12772b75d417c9568b7bf27662749f9b9b9a9ed34667fbadc83c9"
+    },
+    "invoice": {
+      "rows": 800,
+      "sha256": "764efc7ef5ed93a1fa7290d38123b86790b28c8845b55016783f814d256446e7"
+    },
+    "invoice_line": {
+      "rows": 1651,
+      "sha256": "8ae59f186d8ae19ee30d2873ce30b3121f340040c21499f2c82b740624babaaf"
+    },
+    "invoice_shipment": {
+      "rows": 928,
+      "sha256": "ba26b1ed1f4ee97b8ae9f84f22fdaddb7166fa3db5abd29a93812f0e8103711b"
+    },
+    "payment": {
+      "rows": 1500,
+      "sha256": "2ff706b787a77761e571b7a5a1fad7774ea6bb879c4bd5a49234b2353711ee31"
+    },
+    "payment_allocation": {
+      "rows": 1545,
+      "sha256": "7a095cfaa273f693f1411240cfaa58eeb92598c1faed692621185fa53f10cb7b"
+    },
+    "dispute": {
+      "rows": 46,
+      "sha256": "bad8ac857714b918e210fcce2a5e5a5e111b5465364e5e85e153e455b9d39648"
+    },
+    "ar_ledger_entry": {
+      "rows": 2426,
+      "sha256": "aa34f234257e7bf38f75340e5fe20421464ae718305c3daf3eebcac32f455031"
+    },
+    "status_event": {
+      "rows": 15185,
+      "sha256": "b09644d7399c2e122495905c9eef214e5cc99c984aef6cd84b513fed653e962f"
+    }
+  },
+  "combined_sha256": "3c2e73e0b304657c93853ef75cb02b9e906217c431f2de58db93a31dc57ab464",
+  "ground_truth": {
+    "file": "ground_truth.csv",
+    "rows": 124,
+    "sha256": "6490f0bb0a2dfc5f0b7e9a83f02e683889752ec06616ad46e1e415121ca7fbda"
+  }
+}

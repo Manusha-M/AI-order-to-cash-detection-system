@@ -1,0 +1,10 @@
+{
+  "scale": "full",
+  "seed": 20261022,
+  "findings_on_clean_data": 0,
+  "by_issue_type": {},
+  "structural_failed": 0,
+  "business_failed": 0,
+  "identities_failed": 0,
+  "status": "PASS"
+}

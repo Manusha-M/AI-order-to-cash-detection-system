@@ -1,0 +1,148 @@
+{
+  "scale": "starter",
+  "seed": 20261022,
+  "status": "PASS",
+  "method": "Two independent processes with PYTHONHASHSEED 1 and 2; SHA-256 of sorted logical CSV exports.",
+  "combined_sha256_a": "3c2e73e0b304657c93853ef75cb02b9e906217c431f2de58db93a31dc57ab464",
+  "combined_sha256_b": "3c2e73e0b304657c93853ef75cb02b9e906217c431f2de58db93a31dc57ab464",
+  "ground_truth_sha256_a": "6490f0bb0a2dfc5f0b7e9a83f02e683889752ec06616ad46e1e415121ca7fbda",
+  "ground_truth_sha256_b": "6490f0bb0a2dfc5f0b7e9a83f02e683889752ec06616ad46e1e415121ca7fbda",
+  "findings_a": {
+    "rows": 124,
+    "sha256": "cd8c6ea978f077ae918413054b8be4fdf85da481d89caa941131ce8bba31c891"
+  },
+  "findings_b": {
+    "rows": 124,
+    "sha256": "cd8c6ea978f077ae918413054b8be4fdf85da481d89caa941131ce8bba31c891"
+  },
+  "tables": [
+    {
+      "table": "product",
+      "rows_a": 40,
+      "rows_b": 40,
+      "sha256_a": "af7297a0762a8a392fc41f0c7031d3981aa8785a80c8c83974dce04cb685d3f2",
+      "sha256_b": "af7297a0762a8a392fc41f0c7031d3981aa8785a80c8c83974dce04cb685d3f2",
+      "match": true
+    },
+    {
+      "table": "account",
+      "rows_a": 80,
+      "rows_b": 80,
+      "sha256_a": "681b3dfe9af98b9c1d22bf3cde421574a59b520ca0261e2980918d063c6f88c9",
+      "sha256_b": "681b3dfe9af98b9c1d22bf3cde421574a59b520ca0261e2980918d063c6f88c9",
+      "match": true
+    },
+    {
+      "table": "quote",
+      "rows_a": 1000,
+      "rows_b": 1000,
+      "sha256_a": "927dc26aee2b65447eb6ad61f6342fae268bc70982f1a808807ce437323ce2ce",
+      "sha256_b": "927dc26aee2b65447eb6ad61f6342fae268bc70982f1a808807ce437323ce2ce",
+      "match": true
+    },
+    {
+      "table": "quote_line",
+      "rows_a": 2219,
+      "rows_b": 2219,
+      "sha256_a": "9062f822bf27f8918f0036ff57345ad6303adfed2121400fcffd557b45b4bafc",
+      "sha256_b": "9062f822bf27f8918f0036ff57345ad6303adfed2121400fcffd557b45b4bafc",
+      "match": true
+    },
+    {
+      "table": "sales_order",
+      "rows_a": 700,
+      "rows_b": 700,
+      "sha256_a": "6435f0a78d495c23c241a58e47c7075c6b869e891248c72ab4e9ddbcad089879",
+      "sha256_b": "6435f0a78d495c23c241a58e47c7075c6b869e891248c72ab4e9ddbcad089879",
+      "match": true
+    },
+    {
+      "table": "order_line",
+      "rows_a": 1536,
+      "rows_b": 1536,
+      "sha256_a": "680a8436f45f0062040ad0aa2032128e51c2763c7676a087162e951480e24f9d",
+      "sha256_b": "680a8436f45f0062040ad0aa2032128e51c2763c7676a087162e951480e24f9d",
+      "match": true
+    },
+    {
+      "table": "shipment",
+      "rows_a": 954,
+      "rows_b": 954,
+      "sha256_a": "663a95de932ebdc5331175eefba32002cbcd980aff626c9b4cff6258fbe81d43",
+      "sha256_b": "663a95de932ebdc5331175eefba32002cbcd980aff626c9b4cff6258fbe81d43",
+      "match": true
+    },
+    {
+      "table": "shipment_line",
+      "rows_a": 1902,
+      "rows_b": 1902,
+      "sha256_a": "dc0000947ef12772b75d417c9568b7bf27662749f9b9b9a9ed34667fbadc83c9",
+      "sha256_b": "dc0000947ef12772b75d417c9568b7bf27662749f9b9b9a9ed34667fbadc83c9",
+      "match": true
+    },
+    {
+      "table": "invoice",
+      "rows_a": 800,
+      "rows_b": 800,
+      "sha256_a": "764efc7ef5ed93a1fa7290d38123b86790b28c8845b55016783f814d256446e7",
+      "sha256_b": "764efc7ef5ed93a1fa7290d38123b86790b28c8845b55016783f814d256446e7",
+      "match": true
+    },
+    {
+      "table": "invoice_line",
+      "rows_a": 1651,
+      "rows_b": 1651,
+      "sha256_a": "8ae59f186d8ae19ee30d2873ce30b3121f340040c21499f2c82b740624babaaf",
+      "sha256_b": "8ae59f186d8ae19ee30d2873ce30b3121f340040c21499f2c82b740624babaaf",
+      "match": true
+    },
+    {
+      "table": "invoice_shipment",
+      "rows_a": 928,
+      "rows_b": 928,
+      "sha256_a": "ba26b1ed1f4ee97b8ae9f84f22fdaddb7166fa3db5abd29a93812f0e8103711b",
+      "sha256_b": "ba26b1ed1f4ee97b8ae9f84f22fdaddb7166fa3db5abd29a93812f0e8103711b",
+      "match": true
+    },
+    {
+      "table": "payment",
+      "rows_a": 1500,
+      "rows_b": 1500,
+      "sha256_a": "2ff706b787a77761e571b7a5a1fad7774ea6bb879c4bd5a49234b2353711ee31",
+      "sha256_b": "2ff706b787a77761e571b7a5a1fad7774ea6bb879c4bd5a49234b2353711ee31",
+      "match": true
+    },
+    {
+      "table": "payment_allocation",
+      "rows_a": 1545,
+      "rows_b": 1545,
+      "sha256_a": "7a095cfaa273f693f1411240cfaa58eeb92598c1faed692621185fa53f10cb7b",
+      "sha256_b": "7a095cfaa273f693f1411240cfaa58eeb92598c1faed692621185fa53f10cb7b",
+      "match": true
+    },
+    {
+      "table": "dispute",
+      "rows_a": 46,
+      "rows_b": 46,
+      "sha256_a": "bad8ac857714b918e210fcce2a5e5a5e111b5465364e5e85e153e455b9d39648",
+      "sha256_b": "bad8ac857714b918e210fcce2a5e5a5e111b5465364e5e85e153e455b9d39648",
+      "match": true
+    },
+    {
+      "table": "ar_ledger_entry",
+      "rows_a": 2426,
+      "rows_b": 2426,
+      "sha256_a": "aa34f234257e7bf38f75340e5fe20421464ae718305c3daf3eebcac32f455031",
+      "sha256_b": "aa34f234257e7bf38f75340e5fe20421464ae718305c3daf3eebcac32f455031",
+      "match": true
+    },
+    {
+      "table": "status_event",
+      "rows_a": 15185,
+      "rows_b": 15185,
+      "sha256_a": "b09644d7399c2e122495905c9eef214e5cc99c984aef6cd84b513fed653e962f",
+      "sha256_b": "b09644d7399c2e122495905c9eef214e5cc99c984aef6cd84b513fed653e962f",
+      "match": true
+    }
+  ]
+}

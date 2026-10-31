@@ -1,0 +1,140 @@
+{
+  "matching_rule": "Exact match on (issue_type, primary record ID); one finding per anomaly.",
+  "ground_truth_labels": 124,
+  "findings": 124,
+  "overall": {
+    "tp": 124,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "macro_f1": 1.0,
+  "by_label_source": {
+    "injected": {
+      "tp": 45,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "labels": 45
+    },
+    "plan": {
+      "tp": 38,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "labels": 38
+    },
+    "rule": {
+      "tp": 41,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "labels": 41
+    }
+  },
+  "by_issue_type": {
+    "CLOSED_ORDER_UNPAID": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "DISPUTE_NOT_IN_AR": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "DUPLICATE_ALLOCATION": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "DUPLICATE_INVOICE": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "FULFILMENT_DELAY": {
+      "tp": 24,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "ILLEGAL_TRANSITION": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "INVOICING_DELAY": {
+      "tp": 17,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "LONG_OVERDUE": {
+      "tp": 22,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "OVERBILLING": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "SHORT_PAYMENT": {
+      "tp": 16,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "UNDERBILLING": {
+      "tp": 9,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  },
+  "impact_accuracy": {
+    "checked": 77,
+    "exact": 77,
+    "misses": []
+  },
+  "false_positive_sample": [],
+  "false_negative_sample": []
+}
