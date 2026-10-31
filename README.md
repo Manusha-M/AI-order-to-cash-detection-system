@@ -1,540 +1,484 @@
+# YottaFlex O2C Detection System
+## Order-to-Cash Revenue Leakage and Process Delay Analysis
 
+A reproducible, explainable analytics solution for tracking the Order-to-Cash (O2C) lifecycle and identifying potential revenue leakage, process delays, billing discrepancies, payment exceptions, and disputes.
 
-<div align="center">
-
-# Order-to-Cash Revenue Leakage & Process Delay Analysis
-
-**Follow every sale from quote to cash. Find where revenue leaks, where work stalls, and why.**
-
-A reproducible, local analytics system for investigating order-to-cash (O2C) exceptions using synthetic business data, explainable detection rules, financial reconciliation, and a Streamlit dashboard.
-
-![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
-![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white)
-![Streamlit](https://img.shields.io/badge/Dashboard-Streamlit-FF4B4B?logo=streamlit&logoColor=white)
-![Tests](https://img.shields.io/badge/Tests-208%20passed-success)
-![Execution](https://img.shields.io/badge/Execution-Local%20%26%20reproducible-informational)
-
-</div>
+**Repository:** [Manusha-M/AI-order-to-cash-detection-system](https://github.com/Manusha-M/AI-order-to-cash-detection-system)
 
 ---
 
-## Project Overview
+## 1. Business Context and Problem
 
-Order-to-cash processes connect customer accounts, quotes, orders, fulfilment, invoices, payments, and disputes. Each hand-off can introduce revenue leakage, receivables discrepancies, or process delays.
+The Order-to-Cash process begins when a customer receives a quote and continues through order creation, fulfillment, invoicing, payment collection, and dispute resolution.
 
-This project builds a controlled O2C environment using synthetic data, introduces known business exceptions, detects them with explainable Python/SQL rules, reconciles financial records, and evaluates the results against separately maintained ground-truth labels.
+Errors, missing transitions, incomplete fulfillment, billing discrepancies, and payment delays can create revenue leakage or operational inefficiencies.
 
-### At a glance
+This project analyzes the O2C lifecycle to identify potential exceptions, preserve traceability to source records, and produce measurable validation and evaluation results.
 
-| Area | Description |
+The solution focuses on:
+
+- Tracking quote, order, fulfillment, invoice, payment, and dispute states
+- Identifying potential revenue leakage and process delays
+- Detecting billing and payment exceptions
+- Preserving lifecycle state changes as explicit events
+- Reconciling operational quantities and financial balances
+- Evaluating detection outcomes against separate ground truth
+
+## 2. Objective and Scope
+
+The objective is to build a working, end-to-end solution that:
+
+1. Generates and maintains related O2C business entities.
+2. Applies conditional business rules to lifecycle transitions.
+3. Detects exceptions and potential revenue leakage.
+4. Preserves traceability from findings to source records and events.
+5. Produces measurable validation and evaluation outputs.
+6. Supports reproducible generation and execution.
+7. Provides an interface for reviewing analytical results.
+
+The solution includes multiple related entities, conditional rules, exception paths, financial reconciliation, and evaluation against known synthetic anomalies.
+
+## 3. Primary Actors and Systems
+
+| Actor or System | Responsibility |
 |---|---|
-| Business problem | Identify revenue leakage, receivables discrepancies, and delays across the O2C lifecycle |
-| Approach | Deterministic synthetic data, controlled anomaly injection, explainable detection rules |
-| Storage | Local SQLite database with CSV/JSON exports |
-| Interface | Five-tab Streamlit analytics dashboard |
-| Reproducibility | Fixed seed, configuration, manifests, checksums, and reproducibility checks |
-| Evaluation | Findings compared with separate ground-truth labels, including a clean-data negative control |
-| Currency | INR; monetary values stored as integer paise |
-| Data privacy | Synthetic data only; no external or personal business records used |
+| Customer / Prospect | Receives quotes, places orders, makes payments, and may raise disputes |
+| Marketing / Sales Operations | Creates accounts and quotes and manages quote acceptance |
+| Support Agent | Reviews customer issues and dispute-related information |
+| Analyst | Reviews findings, reconciliation results, aging, and process exceptions |
+| System Administrator | Maintains configuration, execution, and data integrity |
+| O2C Analytics System | Generates data, validates records, detects exceptions, and produces reports |
 
-> **AI-assisted development disclosure:** This project was developed with Claude Code. The prompt history and disclosure are maintained in [`docs/prompt_history.md`](docs/prompt_history.md) and [`docs/ai_usage.md`](docs/ai_usage.md). The development and verification handover is documented in [`HANDOFF.md`](HANDOFF.md).
+## 4. Business Workflow and Rules
 
----
-
-## Business Workflow
-
-The O2C lifecycle represented by the project is:
+### High-Level Workflow
 
 ```text
-Account
-   |
-   v
-Quote --> Quote Lines
-   |
-   | accepted
-   v
-Sales Order --> Order Lines
-   |
-   v
-Shipment --> Shipment Lines
-   |
-   v
-Invoice --> Invoice Lines
-   |
-   v
-Payment --> Payment Allocations
-
-Dispute --> Receivables / Collection Hold
+Account → Quote → Sales Order → Shipment → Invoice → Payment
+                                              └────→ Dispute
 ```
 
-A quote may be accepted and become a sales order. An order may be fulfilled through multiple shipments. Shipments may be invoiced separately or together. Payments may arrive late, in instalments, or be allocated across invoices. A dispute may affect the amount considered collectible.
+The implementation expands this workflow with line-level records, payment allocations, and lifecycle events.
 
-Each transition is a potential control point:
+### Business Rules
 
-- Goods shipped but not invoiced
-- Invoice quantity or value exceeds fulfilment
-- Duplicate invoice or payment allocation
-- Order closed while an invoice remains unpaid
-- Illegal or skipped status transition
-- Dispute not correctly reflected in receivables
-- Delayed fulfilment, invoicing, or collection
+1. Generate or reference master data first:
+   - Account
+   - Quote
+   - QuoteLine
+   - SalesOrder
+   - OrderLine
 
-The project preserves lifecycle changes in `status_event` rather than relying only on a final status.
+2. Generate dependent transaction and event records using valid parent IDs.
 
----
+3. Apply lifecycle logic:
+   - Create accounts and quotes.
+   - Convert accepted quotes into sales orders.
+   - Generate fulfillment and shipment events.
+   - Invoice fulfilled quantities.
+   - Record payments and payment allocations.
+   - Record disputes and their relationships to relevant business records.
+   - Calculate aging and exception rules.
+   - Preserve state changes as events.
 
-## Architecture
+4. Persist relevant state changes as explicit records or events. Do not overwrite historical state changes.
 
-The project uses a **single local Python process and one SQLite database**. The core pipeline is batch-oriented and does not require a hosted AI service or external database server.
+5. Generate derived outcomes and ground-truth labels from documented business rules rather than independent random assignment.
 
-### System architecture
+6. Validate relationships, lifecycle transitions, and financial calculations before evaluating detection results.
 
-```mermaid
-flowchart TB
-    subgraph INPUT["Configuration and Inputs"]
-        CFG["Run configuration<br/>scale, seed, cutoff"]
-        SCHEMA["SQLite schema<br/>constraints and relationships"]
-        RULES["Business rules<br/>thresholds and definitions"]
-    end
-
-    subgraph PIPELINE["Python Pipeline"]
-        GEN["Synthetic data generator"]
-        BASE["Valid baseline records"]
-        INJECT["Controlled anomaly injection"]
-        DETECT["Explainable detection rules"]
-        VALIDATE["Structural and business validation"]
-        RECON["Financial reconciliation"]
-        EVAL["Evaluation against ground truth"]
-    end
-
-    subgraph STORAGE["Local Data and Outputs"]
-        DB[("SQLite database")]
-        EXPORT["CSV / JSON exports"]
-        GT["Separate ground_truth.csv"]
-        FINDINGS["Findings with evidence"]
-        REPORTS["Validation, reconciliation,<br/>evaluation and manifest reports"]
-    end
-
-    subgraph PRESENTATION["Review and Analysis"]
-        DASH["Streamlit dashboard"]
-        REVIEW["Reviewer investigation<br/>and walkthrough"]
-    end
-
-    CFG --> GEN
-    SCHEMA --> DB
-    RULES --> DETECT
-    GEN --> BASE
-    BASE --> INJECT
-    INJECT --> DB
-    INJECT --> EXPORT
-    INJECT --> GT
-    DB --> DETECT
-    DETECT --> FINDINGS
-    DB --> VALIDATE
-    DB --> RECON
-    FINDINGS --> EVAL
-    GT --> EVAL
-    DB --> DASH
-    FINDINGS --> DASH
-    REPORTS --> DASH
-    VALIDATE --> REPORTS
-    RECON --> REPORTS
-    EVAL --> REPORTS
-    DASH --> REVIEW
-```
-
-### Technology choices
-
-| Technology | Role | Reason |
-|---|---|---|
-| Python | Generation, orchestration, detection, validation, evaluation | Readable implementation and broad standard-library support |
-| SQLite | Relational transactional store and analytical queries | Local, serverless database suitable for batch analysis |
-| SQL | Schema, joins, analytical views, and rule queries | Makes relational checks and evidence traceable |
-| Streamlit | Interactive dashboard | Provides a local interface for exploring analytical results |
-| pandas / Altair | Dashboard data handling and charts | Tabular analysis and visualization |
-| pytest | Automated tests | Repeatable verification of core behaviour |
-
-### Design principles
-
-- **Deterministic inputs:** seed and configuration are explicit.
-- **Valid baseline first:** generate internally consistent business records before introducing controlled exceptions.
-- **Answer-key separation:** detection rules do not read `ground_truth.csv`.
-- **Traceable findings:** each finding points to source records and supporting evidence.
-- **Exact money arithmetic:** use integer paise instead of floating-point arithmetic for financial identities.
-- **Event history:** preserve status transitions rather than overwriting historical state.
-- **Local-first execution:** generated data and outputs remain on the local machine.
-- **Explicit limitations:** synthetic-data performance is not presented as proof of real-world accuracy.
-
----
-
-## Methodology and Execution Flow
-
-The main entry point is `run.py`. The `all` command orchestrates the pipeline.
+## 5. Architecture
 
 ```mermaid
 flowchart TD
-    A["1. Configure run<br/>scale, seed, cutoff"] --> B["2. Generate synthetic<br/>O2C business records"]
-    B --> C["3. Build valid baseline<br/>and derive business totals"]
-    C --> D["4. Inject controlled<br/>business anomalies"]
-    D --> E["5. Persist SQLite data<br/>and CSV / JSON exports"]
-    D --> F["6. Write separate<br/>ground-truth labels"]
-    E --> G["7. Run detection rules"]
-    G --> H["8. Store findings<br/>with evidence"]
-    E --> I["9. Validate structure<br/>and business invariants"]
-    H --> J["10. Reconcile financial<br/>balances"]
-    H --> K["11. Evaluate detections"]
-    F --> K
-    I --> L["12. Generate reports"]
-    J --> L
-    K --> L
-    L --> M["13. Explore results<br/>in Streamlit dashboard"]
+    A[Configuration and Fixed Seed] --> B[Master Data Generation]
+    B --> C[Quote and Order Generation]
+    C --> D[Fulfillment and Shipment Events]
+    D --> E[Invoice Generation]
+    E --> F[Payment Allocation and Disputes]
+    F --> G[SQLite Persistence]
+    G --> H[Structural and Business Validation]
+    H --> I[Detection and Aging Rules]
+    I --> J[Financial Reconciliation]
+    J --> K[Findings and Exceptions]
+    K --> L[Evaluation Against Separate Ground Truth]
+    K --> M[Streamlit Dashboard]
+    L --> N[Validation and Evaluation Reports]
 ```
 
-### Methodology steps
-
-1. **Configure the run**  
-   Select starter or full scale, seed, and business cutoff date.
-
-2. **Generate business records**  
-   Create accounts, products, quotes, quote lines, sales orders, order lines, shipments, invoices, payments, disputes, and status events.
-
-3. **Establish valid business facts**  
-   Derive totals from source lines and balances from ledger entries instead of randomizing calculated values.
-
-4. **Inject controlled anomalies**  
-   Introduce selected business exceptions while preserving valid primary keys, foreign keys, and relevant line arithmetic.
-
-5. **Persist and export**  
-   Write the SQLite database, CSV/JSON artifacts, ground-truth labels, and run manifest.
-
-6. **Detect exceptions**  
-   Run deterministic rules against transactional records and lifecycle history.
-
-7. **Validate and reconcile**  
-   Check structural integrity, business invariants, and financial identities.
-
-8. **Evaluate**  
-   Compare findings with ground-truth labels and run a clean-data negative control.
-
-9. **Review**  
-   Use the dashboard and supporting evidence to investigate findings and explain the business impact.
-
-> **Evaluation boundary:** `ground_truth.csv` is used for evaluation after detection. It is not an input to the detection rules. This separation prevents the detector from reading the answer key.
-
----
-
-## What the System Does
-
-### 1. Generates reproducible synthetic data
-
-The same seed produces the same generated dataset in the same supported environment. Starter and full scales use the same generation logic with different data volumes.
-
-### 2. Builds valid records before injecting anomalies
-
-The generator first creates internally consistent business records. It then introduces controlled anomalies, allowing detection rules to be tested against realistic-looking exceptions without simply flagging broken database rows.
-
-### 3. Preserves lifecycle history
-
-Business state changes are represented in `status_event`. Historical transitions are retained rather than relying only on the current status.
-
-### 4. Detects 11 exception types
-
-Each finding includes its rule, source record, related records, severity, expected and observed behaviour, financial impact, and supporting evidence.
-
-### 5. Reconciles financial records
-
-Six reconciliation identities compare the receivables ledger with source transaction tables. The expected difference is exactly zero paise.
-
-### 6. Evaluates detection quality
-
-The evaluator reports true positives, false positives, false negatives, precision, recall, and F1 overall and by issue type or label source. It also examines monetary amounts associated with matched findings.
-
-### 7. Provides an analytics dashboard
-
-A five-tab Streamlit dashboard supports exploration of exceptions, financial exposure, reconciliation, and process delays.
-
----
-
-## Data Model
-
-### Core entities
-
-The eleven core entities are:
-
-```text
-account
-quote
-quote_line
-sales_order
-order_line
-shipment
-invoice
-invoice_line
-payment
-dispute
-status_event
-```
-
-### Supporting tables
-
-| Supporting table | Purpose |
-|---|---|
-| `shipment_line` | A shipment can carry many order lines; an order line can ship in parts |
-| `invoice_shipment` | An invoice can bill one or more shipments |
-| `payment_allocation` | A payment can settle multiple invoices, and an invoice can receive multiple payments |
-| `ar_ledger_entry` | Append-only receivables ledger and source of receivable balances |
-| `product` | Product catalogue referenced by quote lines |
-
-### Relationship overview
+### Methodology
 
 ```mermaid
-erDiagram
-    ACCOUNT ||--o{ QUOTE : owns
-    QUOTE ||--|{ QUOTE_LINE : contains
-    QUOTE ||--o| SALES_ORDER : converts_to
-    SALES_ORDER ||--|{ ORDER_LINE : contains
-    SALES_ORDER ||--o{ SHIPMENT : fulfilled_by
-    SHIPMENT ||--|{ SHIPMENT_LINE : contains
-    ORDER_LINE ||--o{ SHIPMENT_LINE : fulfilled_as
-    SHIPMENT ||--o{ INVOICE_SHIPMENT : billed_through
-    INVOICE ||--o{ INVOICE_SHIPMENT : references
-    INVOICE ||--|{ INVOICE_LINE : contains
-    ACCOUNT ||--o{ PAYMENT : makes
-    PAYMENT ||--o{ PAYMENT_ALLOCATION : allocated_by
-    INVOICE ||--o{ PAYMENT_ALLOCATION : receives
-    INVOICE ||--o{ DISPUTE : may_have
-    ACCOUNT ||--o{ STATUS_EVENT : has_history
+flowchart TD
+    A[Configure Dataset Scale and Seed] --> B[Generate Valid Baseline Records]
+    B --> C[Generate Dependent Transactions]
+    C --> D[Inject Labelled Edge Cases]
+    D --> E[Persist Data]
+    E --> F[Validate Keys, Joins, Dates and Arithmetic]
+    F --> G[Run Detection Rules]
+    G --> H[Reconcile Quantities and Balances]
+    H --> I[Compare Findings with Ground Truth]
+    I --> J[Review Results and Limitations]
 ```
 
-The schema defines primary keys, foreign keys, relationships, and constraints. Field definitions and detailed cardinalities are documented in [`docs/data_dictionary.md`](docs/data_dictionary.md).
+The pipeline separates data generation, anomaly creation, detection, and evaluation. Ground-truth labels are maintained separately and are not used as detection inputs.
 
-### Business ID conventions
+## 6. Entities and Relationships
 
-The project uses deterministic, human-readable business IDs:
+The core entities are:
 
-| Entity | ID format | Example |
+| Entity | Description |
+|---|---|
+| Account | Customer or prospect master record |
+| Quote | Commercial offer associated with an account |
+| QuoteLine | Individual product or service line within a quote |
+| SalesOrder | Order created from an accepted quote |
+| OrderLine | Individual line within a sales order |
+| Shipment | Fulfillment transaction |
+| Invoice | Billing document |
+| InvoiceLine | Individual billed line and quantity |
+| Payment | Payment received from a customer |
+| Dispute | Customer dispute related to an O2C transaction |
+| StatusEvent | Historical record of a lifecycle state change |
+
+### Relationship Design
+
+The data model documents and validates:
+
+- Primary keys for every entity
+- Foreign keys for every relationship
+- Relationship cardinality: 1:1, 1:N, and N:M where applicable
+- Optional and required relationships
+- Effective dates and lifecycle states
+- Bridge tables for many-to-many relationships
+- Event history for lifecycle changes
+- Join integrity across related entities
+
+### Traceability
+
+Each finding should be traceable to its relevant source business records and, where applicable, the lifecycle events that produced the state being analyzed.
+
+## 7. ID and Nomenclature Conventions
+
+The project uses deterministic, immutable, zero-padded business identifiers.
+
+| Entity | Required Format | Example |
 |---|---|---|
-| Quote | `QTE-2026-######` | `QTE-2026-000001` |
-| Sales order | `SO-2026-######` | `SO-2026-000001` |
-| Shipment | `SHP-2026-######` | `SHP-2026-000001` |
-| Invoice | `INV-2026-######` | `INV-2026-000001` |
-| Payment | `PAY-2026-######` | `PAY-2026-000001` |
-| Dispute | `DSP-2026-######` | `DSP-2026-000001` |
+| Quote | `QTE-2026-000001` | `QTE-2026-000001` |
+| Sales Order | `SO-2026-000001` | `SO-2026-000001` |
+| Shipment | `SHP-2026-000001` | `SHP-2026-000001` |
+| Invoice | `INV-2026-000001` | `INV-2026-000001` |
+| Payment | `PAY-2026-000001` | `PAY-2026-000001` |
+| Dispute | `DSP-2026-000001` | `DSP-2026-000001` |
 
-The generator creates these identifiers, propagates them through related records, and the SQLite schema enforces the expected patterns.
+IDs remain immutable, and referenced IDs must be consistent across generated files and database relationships.
 
-Money is represented in INR integer paise to avoid floating-point rounding in financial calculations.
+## 8. Synthetic Data Generation
 
----
+The project uses synthetic data to demonstrate the O2C workflow without requiring confidential or personal business records.
 
-## Detection Scenarios
+### 8.1 Data Dictionary
 
-The project includes the five required negative scenarios and additional exception coverage.
+A data dictionary should document the fields for:
 
-| Scenario | Business issue |
+- Account
+- Quote
+- QuoteLine
+- SalesOrder
+- OrderLine
+- Shipment
+- Invoice
+- InvoiceLine
+- Payment
+- Dispute
+- StatusEvent
+
+For each field, document:
+
+| Attribute | Description |
 |---|---|
-| **Underbilling** | Goods are fulfilled but the corresponding value is not fully invoiced |
-| **Overbilling** | Invoice quantity or amount exceeds fulfilled quantity or value |
-| **Duplicate invoice** | The same business fulfilment is billed more than once |
-| **Duplicate payment allocation** | A payment is applied more than once |
-| **Closed order with unpaid invoice** | An order is closed while receivables remain open |
-| **Illegal status transition** | A required lifecycle state is skipped |
-| **Dispute not reflected in AR** | An open dispute has no or insufficient ledger hold |
-| **Fulfilment delay** | An order takes longer than the configured fulfilment target |
-| **Invoicing delay** | A shipment takes longer than the configured invoicing target |
-| **Long overdue** | A receivable exceeds the configured overdue threshold |
-| **Short payment** | A payment is below the amount expected to settle an invoice |
+| Field name | Name used in the data model |
+| Type | Data type |
+| Required / Optional | Whether a value must be present |
+| Allowed values | Valid values or enumerations |
+| Units | Currency, quantity, days, or other units |
+| Uniqueness | Whether the value must be unique |
+| Validation rule | Rule used to validate the value |
 
-The dataset also includes look-alike cases that should not be flagged, such as similar invoices for distinct shipments, voided and reissued invoices, and boundary cases around configured thresholds.
+### 8.2 Parent-First Generation
 
-Anomalies are designed to preserve valid keys and line arithmetic. Detailed rule definitions and evidence logic are documented in [`docs/business_rules.md`](docs/business_rules.md).
+The generator follows dependency order:
 
----
+1. Generate accounts.
+2. Generate quotes and quote lines.
+3. Convert accepted quotes into sales orders and order lines.
+4. Generate shipment and fulfillment records.
+5. Generate invoices from fulfilled quantities.
+6. Generate payments and payment allocations.
+7. Generate disputes and status events.
+8. Calculate derived values, aging, and exception outcomes.
 
-## Financial Measures
+Dependent records must reference valid parent IDs.
 
-The dashboard keeps distinct financial concepts separate to avoid overstating leakage.
+### 8.3 Dataset Scale and Reproducibility
 
-| Measure | Interpretation |
+The target full-scale dataset includes:
+
+| Record Type | Target Volume |
+|---|---:|
+| Quotes | 10,000 |
+| Sales Orders | 7,000 |
+| Invoices | 8,000 |
+| Payments / Events | 15,000 |
+
+The generator should support parameterized starter and full dataset scales using the same generation logic.
+
+A fixed seed, such as `20261022`, is used to support reproducibility. The same seed and configuration should produce consistent records, row counts, and checksums.
+
+### 8.4 Baseline and Anomaly Generation
+
+Generate valid baseline records first. Then inject deliberate, labelled edge cases.
+
+Required scenarios include:
+
+- Partial shipment
+- Underbilling
+- Duplicate invoice
+- Short payment
+- Long-overdue balance
+- Invoice exceeding fulfilled quantity
+- Payment allocated twice
+- Order closed with unpaid invoice
+- Status event skipping a required state
+- Dispute not reflected in receivables
+
+For deliberate anomaly cases, retain an `issue_type` or `ground_truth` label. Do not silently corrupt unrelated records.
+
+### 8.5 Derived Values
+
+Calculate totals, balances, scores, statuses, and dates from source records and documented business rules rather than generating them independently.
+
+Examples include:
+
+- Quote totals from quote lines
+- Order totals from order lines
+- Fulfilled quantities from shipment records
+- Invoice amounts from invoice lines
+- Outstanding balances from invoice amounts and payment allocations
+- Aging from invoice dates and a defined cutoff date
+- Lifecycle state from recorded status events
+
+### 8.6 Ground Truth
+
+Generate a separate ground-truth artifact, such as CSV or JSON, containing known anomalies, expected decisions, or labels.
+
+Ground truth must not be leaked into the input features used by detection rules.
+
+## 9. Detection and Exception Analysis
+
+The system applies deterministic, explainable rules to identify potential O2C exceptions.
+
+Detection areas include:
+
+- Fulfillment and invoicing discrepancies
+- Potential duplicate invoices
+- Short payments
+- Unapplied or incorrectly allocated payments
+- Overdue invoices and aging
+- Dispute-related exceptions
+- Lifecycle delays
+- Inconsistent status transitions
+
+Each finding should expose the relevant rule, affected business records, and supporting information needed for review.
+
+A detected finding is a potential exception requiring review. It is not, by itself, proof of fraud or confirmed financial loss.
+
+## 10. Financial Reconciliation
+
+The solution compares operational and financial values across related records.
+
+Reconciliation includes:
+
+- Ordered quantities versus fulfilled quantities
+- Fulfilled quantities versus invoiced quantities
+- Invoice amounts versus payment allocations
+- Invoice balances and outstanding receivables
+- Dispute amounts and their treatment in receivables
+
+Balances should reconcile according to documented rules, and discrepancies should remain traceable to their source records.
+
+## 11. Validation Rules and Acceptance Criteria
+
+The validation process checks:
+
+| Validation Area | Expected Check |
 |---|---|
-| **Underbilled revenue** | Potential income lost because fulfilled goods were not fully billed |
-| **Overbilled exposure** | Customer overcharge exposure; may require credit or refund |
-| **Duplicate-billing exposure** | Amount billed more than once; not automatically recognized as income |
-| **Overdue receivables** | Collection risk; money may still be collected |
-| **Short-paid balance** | Remaining amount after an insufficient payment |
-| **Payment allocation discrepancy** | Receivables may appear lower than they actually are |
-| **Dispute hold** | Amount subject to dispute; not treated as freely collectible |
-| **Unapplied cash** | Received cash not yet allocated to invoices |
+| Primary keys | Unique and non-null |
+| Foreign keys | Every referenced parent exists |
+| Enumerations | Values belong to allowed states |
+| Dates | Lifecycle dates follow valid ordering rules |
+| Arithmetic | Totals, quantities, and balances reconcile |
+| Lifecycle | State transitions follow documented rules |
+| Duplicates | Duplicate records are detected according to defined criteria |
+| Joins | Relationships produce valid and traceable results |
+| Aging | Calculations use a defined cutoff date |
+| Exceptions | Findings link to source records and events |
+| Ground truth | Labels remain separate from detection inputs |
+| Reproducibility | Same seed and configuration produce consistent outputs |
 
-These measures are not blindly summed into one “loss” number. The project distinguishes potential revenue leakage from customer exposure and collection risk.
+Acceptance criteria:
 
-Full formulas, source records, and limitations are documented in [`docs/business_rules.md`](docs/business_rules.md).
+- O2C state is consistent across related entities.
+- Financial balances reconcile according to documented rules.
+- Exceptions are traceable to source records and events.
+- Aging calculations use defined cutoff dates.
+- Detection results can be evaluated against separate ground truth.
+- The project can be installed, executed, and verified by another reviewer.
 
----
+## 12. Evaluation
 
-## Quick Start
+The generated data and detection results are reviewed for:
 
-### Prerequisites
+1. Realistic distributions and meaningful variation
+2. Consistent IDs and valid joins
+3. Dependency and lifecycle consistency
+4. Correct derived values and financial reconciliation
+5. Normal, boundary, failure, and exception coverage
+6. Separation of ground truth from detection inputs
+7. Fixed-seed reproducibility
+8. Documentation, source manifest, and lawful provenance
 
-- Python **3.11 or newer**
-- Git, if cloning the repository
-- A terminal: PowerShell, Git Bash, or a compatible shell
+Evaluation results should state the dataset scale and configuration used. Results from a starter dataset should not be represented as full-scale results.
 
-The latest local starter validation was run on Windows using Python **3.13.7**.
+## 13. Public Data Guidance and Lawful Use
 
-### 1. Clone the repository
+External data is optional. Synthetic data is preferred when licensing, suitability, or redistribution rights are unclear.
+
+If external data is used, document:
+
+- Source URL
+- Dataset name and version
+- Retrieval date
+- License and terms
+- Required attribution
+- Transformations performed
+- Fields discarded
+
+Use only data that is legally permitted to access and redistribute. Do not bypass access controls or collect confidential or personal information.
+
+Public reference data may be used for schema inspiration when the underlying data is not included in the project.
+
+## 14. Technology Stack
+
+| Technology | Purpose |
+|---|---|
+| Python | Data generation, validation, detection, and analysis |
+| SQLite | Relational data persistence |
+| SQL | Schema and relational queries |
+| Pandas | Data processing and analytical operations |
+| Streamlit | Interactive dashboard |
+| Pytest | Automated testing |
+
+## 15. Repository Structure
+
+```text
+AI-order-to-cash-detection-system/
+├── app/
+├── data/
+├── docs/
+├── outputs/
+├── scripts/
+├── sql/
+├── src/
+├── tests/
+├── HANDOFF.md
+├── README.md
+├── requirements.txt
+├── pytest.ini
+└── run.py
+```
+
+The repository contains the generator, database schema, validation and detection logic, dashboard, tests, supporting documentation, and generated analytical outputs.
+
+## 16. Setup and Execution
+
+### Requirements
+
+- Python 3
+- pip
+- Git
+
+### Clone the Repository
 
 ```bash
 git clone https://github.com/Manusha-M/AI-order-to-cash-detection-system.git
 cd AI-order-to-cash-detection-system
 ```
 
-### 2. Create a virtual environment
+### Create a Virtual Environment
 
 **Windows PowerShell:**
 
 ```powershell
 py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
 ```
 
-**Git Bash / macOS / Linux:**
-
-```bash
-python3 -m venv .venv
-```
-
-### 3. Install dependencies
-
-**Windows PowerShell:**
+If activation is blocked by the current PowerShell execution policy:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
 ```
 
-**Git Bash on Windows:**
+### Install Dependencies
 
 ```bash
-./.venv/Scripts/python.exe -m pip install -r requirements.txt
+python -m pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-**macOS / Linux:**
+### Run the Starter Pipeline
 
 ```bash
-.venv/bin/python -m pip install -r requirements.txt
+python run.py all --scale starter
 ```
 
-### 4. Run the starter pipeline
-
-**Windows PowerShell:**
-
-```powershell
-.\.venv\Scripts\python.exe run.py all --scale starter
-```
-
-**Git Bash on Windows:**
+### Run Validation
 
 ```bash
-./.venv/Scripts/python.exe run.py all --scale starter
+python run.py validate --scale starter
 ```
 
-**macOS / Linux:**
+### Run Automated Tests
 
 ```bash
-.venv/bin/python run.py all --scale starter
+pytest
 ```
 
-### 5. Launch the dashboard
-
-**Windows PowerShell:**
-
-```powershell
-.\.venv\Scripts\python.exe -m streamlit run app\dashboard.py
-```
-
-**Git Bash on Windows:**
+### Launch the Dashboard
 
 ```bash
-./.venv/Scripts/python.exe -m streamlit run app/dashboard.py
+streamlit run app/dashboard.py
 ```
 
-**macOS / Linux:**
+The dashboard should be available locally at:
 
-```bash
-.venv/bin/python -m streamlit run app/dashboard.py
+```text
+http://localhost:8501
 ```
 
-Streamlit will print a local URL, usually `http://localhost:8501`. Open it in your browser.
+Refer to `HANDOFF.md` for additional execution details and project workflow notes.
 
-> The virtual environment does not need to be activated if you invoke its Python executable directly.
+## 17. Verification Results
 
----
+The following results were verified locally on Windows using Python 3.13.7 with the **starter dataset**:
 
-## Pipeline Commands
-
-Run commands from the repository root. The default seed is `20261022`; use `--seed` to select another seed.
-
-| Task | Command |
-|---|---|
-| Full starter pipeline | `python run.py all --scale starter` |
-| Full dataset pipeline | `python run.py all --scale full` |
-| Generate data only | `python run.py generate --scale full` |
-| Detect exceptions | `python run.py detect --scale full` |
-| Validate data | `python run.py validate --scale full` |
-| Reconcile balances | `python run.py reconcile --scale full` |
-| Evaluate against ground truth | `python run.py evaluate --scale full` |
-| Clean-data negative control | `python run.py negative-control --scale full` |
-| Two-run reproducibility | `python run.py reproduce --scale full` |
-| Seed sweep | `python scripts/seed_sweep.py --scale starter` |
-| Automated tests | `python -m pytest -q` |
-| Dashboard | `python -m streamlit run app/dashboard.py` |
-
-Use the virtual-environment Python executable if the environment is not activated.
-
-**Order matters:** run detection before reconciliation and evaluation, because those steps consume detection findings. The `all` command orchestrates the complete sequence.
-
-The full pipeline is reported to take approximately two minutes, depending on the machine and selected scale.
-
----
-
-## Dashboard
-
-The Streamlit dashboard provides five tabs for reviewing generated analytical outputs.
-
-Use it to explore:
-
-- O2C business and financial summary
-- Detected exceptions and supporting evidence
-- Revenue leakage and customer exposure
-- Receivables and reconciliation results
-- Process-stage delays and timing distributions
-
-The dashboard is a local analytical interface. It is not a hosted production service or a real-time connection to an ERP.
-
----
-
-## Validation and Evaluation
-
-### What is checked
-
-- Referential and structural integrity
-- Business invariants and transaction relationships
-- Line totals and derived amounts
-- Receivables ledger consistency
-- Six financial reconciliation identities
-- Reproducibility for the selected seed and environment
-- Detection findings against separate ground-truth labels
-- Negative-control behaviour on clean data
-- Automated tests for core project behaviour
-
-### Latest local starter verification
-
-The following results were obtained locally on Windows using Python 3.13.7:
-
-| Verification | Result |
+| Check | Result |
 |---|---:|
-| Structural checks | **98 / 98 passed** |
-| Business anomaly tie-outs | **6 / 6 matched ground truth** |
-| Automated tests | **208 passed** |
+| Structural validation | 98 / 98 passed |
+| Business anomaly tie-outs | 6 / 6 matched ground truth |
+| Automated tests | 208 passed |
 | Test duration | 69.61 seconds |
 
 Commands used:
@@ -544,152 +488,55 @@ python run.py validate --scale starter
 pytest
 ```
 
-These results apply to the **starter scale**. Run the full-scale pipeline and checks separately before reporting full-scale verification.
+These results apply to the verified starter-scale run. Full-scale results should be reported only after running and verifying the full-scale dataset separately.
 
-### How to interpret detection scores
+## 18. Assumptions and Limitations
 
-The project distinguishes three label sources:
+- The project uses synthetic data rather than live enterprise records.
+- Detection rules are deterministic and explainable.
+- Findings represent potential exceptions and require business review.
+- Ground-truth evaluation applies to the controlled synthetic anomalies generated by the project.
+- Results depend on dataset configuration, seed, and implemented rules.
+- The solution is a candidate project and demonstration system, not a production financial control platform.
+- Real-world deployment would require domain-specific rule review, data-quality assessment, access controls, monitoring, and integration testing.
+- Any incomplete requirements or deviations should be documented in the final audit and explained during the walkthrough.
 
-| Label source | Meaning | Evidential strength |
-|---|---|---|
-| `injected` | A valid business record was deliberately changed to create an anomaly | Strongest available controlled test |
-| `plan` | The generator planned an outcome and labelled it | Useful, but tied to generator design |
-| `rule` | The label re-applies the documented rule | Weakest; a perfect score is close to guaranteed |
+## 19. Supporting Documentation
 
-A perfect score on synthetic data demonstrates that the rules behave as designed against generated scenarios. **It does not establish real-world accuracy.** The generator, labels, and detector share assumptions.
-
-### Reproduce the full-scale report
-
-```bash
-python run.py all --scale full --seed 20261022
-python -m pytest -q
-```
-
-Then inspect:
-
-- [`docs/validation_report.md`](docs/validation_report.md)
-- [`docs/reproducibility.md`](docs/reproducibility.md)
-- [`outputs/`](outputs/)
-
----
-
-## Assumptions and Limitations
-
-### Assumptions
-
-- One currency: INR; tax is excluded.
-- Fulfilment, invoicing, and overdue targets are configurable assumptions, not universal business standards.
-- The receivables ledger gives a concrete interpretation to “reflected in receivables.”
-- Synthetic customer names and transaction data are invented.
-- The business cutoff is `2026-09-30`; transactions scheduled after it remain in-flight.
-
-### Limitations
-
-- Synthetic data cannot represent every real ERP configuration or business process.
-- Rules detect the patterns they were written for; unknown patterns may be missed.
-- Thresholds are single values; actual targets can vary by customer, product, or contract.
-- Dispute credits are associated with invoices, so overbilling is reported gross with credits shown in evidence.
-- An overbilled line that also has shipped-but-unbilled goods can remain below a rule threshold until billing catches up; reconciliation can still show the difference.
-- Reversed payments are modelled only before allocation.
-- SQLite is a local, single-writer database; this is a batch analytics prototype, not a live multi-user production system.
-- Checksums were measured on a specific Python version. Another version may produce different but valid data; run reproducibility checks in the target environment.
-
----
-
-## Repository Structure
-
-```text
-AI-order-to-cash-detection-system/
-├── run.py                  # Command-line pipeline entry point
-├── src/                    # Generator, detector, validation, reconciliation, evaluation
-├── sql/                    # Database schema and analytical views
-├── app/
-│   └── dashboard.py         # Streamlit dashboard
-├── tests/                  # Automated tests
-├── scripts/                # Seed sweep, report writer, supporting utilities
-├── data/
-│   └── starter/             # Starter-scale data/artifacts
-├── outputs/                 # Generated reports and results
-├── docs/
-│   ├── architecture.md
-│   ├── business_rules.md
-│   ├── data_dictionary.md
-│   ├── decisions.md
-│   ├── development_log.md
-│   ├── prompt_history.md
-│   ├── ai_usage.md
-│   ├── validation_report.md
-│   ├── reproducibility.md
-│   └── final_audit.md
-├── requirements.txt
-├── pytest.ini
-├── .gitignore
-└── HANDOFF.md               # Setup and verification handover
-```
+| Document | Purpose |
+|---|---|
+| `docs/development_log.md` | Chronological milestones, debugging, testing, and verification |
+| `docs/prompt_history.md` | AI prompts used during development, with timestamps |
+| `docs/ai_usage.md` | AI usage and contribution disclosure |
+| `docs/decisions.md` | Technical decisions, trade-offs, and issues encountered |
+| `docs/validation_report.md` | Measured validation and testing results |
+| `docs/final_audit.md` | Requirement audit and open items |
 
 ---
 
 ## Development History and Evidence
 
-The development log is maintained separately from Git history to document how the solution evolved during local development.
+This project was built locally with Claude Code in one session on 30 October 2026, without Git, and published to GitHub afterwards. That is why the repository history starts with one large commit. Later commits are changes made after publication.
 
-| Document | Purpose |
+The development log is a separate record from the Git history. These documents show how the solution evolved before publication:
+
+| Document | What it records |
 |---|---|
-| [`HANDOFF.md`](HANDOFF.md) | Clean setup and verification handover |
-| [`docs/architecture.md`](docs/architecture.md) | Architecture and data flow |
-| [`docs/business_rules.md`](docs/business_rules.md) | Rule definitions and financial formulas |
-| [`docs/data_dictionary.md`](docs/data_dictionary.md) | Schema and field reference |
-| [`docs/decisions.md`](docs/decisions.md) | Assumptions, decisions, and trade-offs |
-| [`docs/requirements_matrix.md`](docs/requirements_matrix.md) | Requirement-to-implementation traceability |
-| [`docs/validation_report.md`](docs/validation_report.md) | Recorded test and evaluation results |
-| [`docs/reproducibility.md`](docs/reproducibility.md) | Reproducibility method and results |
-| [`docs/development_log.md`](docs/development_log.md) | Development timeline and evidence |
-| [`docs/ai_usage.md`](docs/ai_usage.md) | AI usage disclosure |
-| [`docs/prompt_history.md`](docs/prompt_history.md) | Recorded prompts |
-| [`docs/final_audit.md`](docs/final_audit.md) | Final audit and open items |
+| `docs/development_log.md` | Chronological record of milestones, debugging, testing and final verification |
+| `docs/prompt_history.md` | AI prompts, with timestamps |
+| `docs/ai_usage.md` | AI usage and contribution disclosure |
+| `docs/decisions.md` | Technical decisions, trade-offs and the bugs found along the way |
+| `docs/validation_report.md` | Measured testing and validation results |
+| `docs/final_audit.md` | Final requirement audit and open items |
 
----
+## AI-Assisted Development
 
-## AI-Assisted Development and Individual Ownership
+This project was built with Claude Code from the prompt in `docs/prompt_history.md`. That master prompt was created with ChatGPT.
 
-This project was developed with Claude Code. The prompt record and AI usage disclosure describe:
+AI wrote the code, tests and documentation, and ran the checks reported here. What the candidate reviewed, and how the prompts relate to the final submission, is stated in `docs/ai_usage.md`. That file is the authoritative record.
 
-- Where AI accelerated development
-- Where AI-generated implementation or documentation was used
-- What was reviewed, changed, or validated
-- Testing and verification performed
-- Known limitations and open items
+## Author
 
-The candidate should review these documents carefully and be prepared to explain the core logic, design decisions, dependencies, and limitations during the walkthrough.
+**Manusha Manne**
 
----
-
-## Next Steps
-
-Potential improvements include:
-
-- Test on Python 3.11 and 3.12, and on a second computer.
-- Have a human reviewer examine the rules and final code.
-- Match dispute credits to order lines to report overbilling net of credits.
-- Configure targets by customer and product rather than using one threshold.
-- Model payments reversed after allocation.
-- Test the rules on real, anonymized business data with permission.
-- Add continuous integration for documented validation and tests.
-
----
-
-## Walkthrough Preparation
-
-Be ready to demonstrate and explain:
-
-1. How to install dependencies and run the pipeline.
-2. How synthetic data is generated and anomalies are injected.
-3. Why the detector cannot access `ground_truth.csv`.
-4. How a finding is traced to source records and evidence.
-5. How the six financial identities are reconciled.
-6. How precision, recall, and F1 are calculated—and what the scores do **not** prove.
-7. Why the architecture and technology choices were made.
-8. Which parts AI accelerated, what you reviewed, and what you personally validated.
-
-**The goal is not just to show that the project runs. It is to show that you understand why it works, how you tested it, and where its boundaries are.**
-
+GitHub: [Manusha-M](https://github.com/Manusha-M)
